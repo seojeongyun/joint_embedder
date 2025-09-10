@@ -39,3 +39,4 @@ config.MODE = 'TRAIN' # ['TRAIN',  'TEST']
 # no residual {'intra_class_distance': 30.436437606811523, 'inter_class_similarity': 0.770909921746505, 'silhouette_score': 0.2697477340698242}
             # {'intra_class_distance': 30.356884002685547, 'inter_class_similarity': 0.768890380859375, 'silhouette_score': 0.26593029499053955}
             # {'intra_class_distance': 29.957530975341797, 'inter_class_similarity': 0.77132030286287, 'silhouette_score': 0.261474609375}
+            # {'intra_class_distance': 30.67803955078125, 'inter_class_similarity': 0.7919620714689556, 'silhouette_score': 0.2533227801322937}

@@ -22,7 +22,7 @@ class LiArcFace(nn.Module):
         self.linear6 = nn.Linear(out_features * 4, out_features*2, bias=True)
         self.linear7 = nn.Linear(out_features * 2, out_features, bias=False)
         #
-        self.ReLU = nn.LeakyReLU()
+        self.ReLU = nn.Mish()
 
     def forward(self, input, J_tokens, mode):
         emb_output_J_tokens = self.embedding(J_tokens)  # 4, 512
