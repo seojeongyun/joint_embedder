@@ -16,7 +16,7 @@ class LiArcFace(nn.Module):
         self.m = m
         self.s = s
         #
-        self.weight = nn.Parameter(torch.empty(num_class, 512)).cuda()
+        self.weight = nn.Parameter(torch.empty(num_class, out_features)).cuda()
         nn.init.xavier_normal_(self.weight)
         #
         self.atfc = nn.Mish()
@@ -37,35 +37,37 @@ class LiArcFace(nn.Module):
             layers.append(nn.Linear(self.in_features, self.out_features, bias=False))
 
         elif num_layers == 3:
-            layers.append(nn.Linear(self.in_features, 32, bias=False))
-            layers.append(nn.Linear(32, 128, bias=False))
+            layers.append(nn.Linear(self.in_features, 32, bias=True))
+            layers.append(nn.Linear(32, 128, bias=True))
             layers.append(nn.Linear(128, self.out_features, bias=False))
 
         elif num_layers == 5:
-            layers.append(nn.Linear(self.in_features, 64, bias=False))
-            layers.append(nn.Linear(64, 256, bias=False))
-            layers.append(nn.Linear(256, 512, bias=False))
-            layers.append(nn.Linear(512, 256, bias=False))
-            layers.append(nn.Linear(256, self.out_features, bias=False))
+            layers.append(nn.Linear(self.in_features, 32, bias=True))
+            layers.append(nn.Linear(32, 64, bias=True))
+            layers.append(nn.Linear(64, 256, bias=True))
+            layers.append(nn.Linear(256, 128, bias=True))
+            layers.append(nn.Linear(128, self.out_features, bias=False))
 
         elif num_layers == 7:
-            layers.append(nn.Linear(self.in_features, 64, bias=False))
-            layers.append(nn.Linear(64, 128, bias=False))
-            layers.append(nn.Linear(128, 256, bias=False))
-            layers.append(nn.Linear(256, 512, bias=False))
-            layers.append(nn.Linear(512, 256, bias=False))
-            layers.append(nn.Linear(256, 128, bias=False))
-            layers.append(nn.Linear(128, self.out_features, bias=False))
+            layers.append(nn.Linear(self.in_features, 32, bias=True))
+            layers.append(nn.Linear(32, 64, bias=True))
+            layers.append(nn.Linear(64, 128, bias=True))
+            layers.append(nn.Linear(128, 256, bias=True))
+            layers.append(nn.Linear(256, 512, bias=True))
+            layers.append(nn.Linear(512, 256, bias=True))
+            layers.append(nn.Linear(256, self.out_features, bias=False))
 
         return layers
 
     def forward(self, input, J_tokens, mode):
+        output = None
         emb_output_J_tokens = self.embedding(J_tokens)  # [B, out_feature]
         out = input
 
         for i, layer in enumerate(self.layer):
             out = layer(out)
-            out = self.atfc(out)
+            if i != len(self.layer) - 1:
+                out = self.atfc(out)
 
         embedding_vec = out + emb_output_J_tokens
 
@@ -80,4 +82,5 @@ class LiArcFace(nn.Module):
             m.scatter_(1, label.view(-1, 1), self.m)
             # output = self.s * (pi - 2 * (theta + m)) / pi
             output = self.s * torch.cos(theta + m)
+
         return output, embedding_vec

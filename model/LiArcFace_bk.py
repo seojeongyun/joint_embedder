@@ -14,13 +14,13 @@ class LiArcFace(nn.Module):
         #
         self.embedding = nn.Embedding(num_embeddings=num_class, embedding_dim=out_features).to(device)
         #
-        self.linear1 = nn.Linear(in_features, out_features//4, bias=True)
-        self.linear2 = nn.Linear(out_features//4, out_features//2, bias=True)
-        self.linear3 = nn.Linear(out_features//2, out_features, bias=True)
-        self.linear4 = nn.Linear(out_features, out_features*2, bias=True)
-        self.linear5 = nn.Linear(out_features*2, out_features*4, bias=True)
-        self.linear6 = nn.Linear(out_features * 4, out_features*2, bias=True)
-        self.linear7 = nn.Linear(out_features * 2, out_features, bias=False)
+        self.linear1 = nn.Linear(in_features, 32, bias=False)
+        self.linear2 = nn.Linear(32, 64, bias=False)
+        self.linear3 = nn.Linear(64, 128, bias=False)
+        self.linear4 = nn.Linear(128, 256, bias=False)
+        self.linear5 = nn.Linear(256, out_features, bias=False)
+        self.linear6 = nn.Linear(out_features, out_features * 2, bias=False)
+        self.linear7 = nn.Linear(out_features * 2, out_features, bias=True)
         #
         self.ReLU = nn.Mish()
 
@@ -31,23 +31,22 @@ class LiArcFace(nn.Module):
         out = self.linear1(input)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear2(out)
+        out = self.linear2(out)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear3(out)
+        out = self.linear3(out)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear4(out)
+        out = self.linear4(out)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear5(out)
+        out = self.linear5(out)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear6(out)
+        out = self.linear6(out)  # 4, 512
         out = self.ReLU(out)
 
-        out = self.linear7(out)
-        out = self.ReLU(out)
+        out = self.linear7(out)  # 4, 512
 
         embedding_vec = out + emb_output_J_tokens
 

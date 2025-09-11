@@ -1,3 +1,5 @@
+import os
+
 import torch
 import umap
 import numpy as np
@@ -49,8 +51,7 @@ def plot_tsne_with_centroids(feats: torch.Tensor, labels: torch.Tensor, title="t
     plt.ylabel("tSNE-2")
     plt.legend(markerscale=1.5, fontsize=8, ncol=2)
     plt.tight_layout()
-    save_path = f"/home/jysuh/PycharmProjects/coord_embedding/embedding_result_img/tsne_{train_config}.png"
-    # plt.show()
+    save_dir_path = f"/home/jysuh/PycharmProjects/coord_embedding/embedding_result_img/{train_config}"
 
     # 4) ?? ?? ?? ??
     metrics = {}
@@ -80,6 +81,14 @@ def plot_tsne_with_centroids(feats: torch.Tensor, labels: torch.Tensor, title="t
         metrics["silhouette_score"] = -1  # ?? ??
 
     if metrics['intra_class_distance'] < 25 and metrics['inter_class_similarity'] < 0.5 and metrics['silhouette_score'] > 0.4:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        os.makedirs(save_dir_path)
+        plt.savefig(save_dir_path + '/' + f'{train_config}', dpi=300, bbox_inches='tight')
+        plt.show()
+        file_path = os.path.join(save_dir_path, 'metrics.txt')
+        with open(file_path, 'w') as f:
+            f.write(f'intra_class_distance: {metrics["intra_class_distance"]}\n')
+            f.write(f'inter_class_similarity: {metrics["inter_class_similarity"]}\n')
+            f.write(f'silhouette_score: {metrics["silhouette_score"]}\n')
+        f.close()
         plt.close()
     return metrics

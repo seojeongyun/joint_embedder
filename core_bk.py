@@ -51,11 +51,13 @@ if __name__ == '__main__':
                                      device=device).to(device)
 
     if config.PRETRAINED:
-        state_dict = torch.load(config.PRETRAINED, map_location=device)
+        state_dict = torch.load(config.PRETRAINED_PATH, map_location=device)
         fc_metric.load_state_dict(state_dict)
-
+        print('load weight...' + config.PRETRAINED_PATH)
+        print(fc_metric)
     criterion = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.Adam(fc_metric.parameters(), lr=config.TRAIN.LR)
+    optimizer = torch.optim.AdamW(fc_metric.parameters(), lr=config.TRAIN.LR)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
 
     train_dataset = Coord_Dataset(cfg=config)
     train_loader = torch.utils.data.DataLoader(
@@ -101,7 +103,8 @@ if __name__ == '__main__':
                         data_time=data_time, loss=losses)
                     # logger.info(msg)
                     print(msg)
-            optimizer.step()
+                optimizer.step()
+            scheduler.step()
         torch.save(fc_metric.state_dict(), f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_{epoch}.pth.tar')
 
     elif config.MODE == 'TEST':
