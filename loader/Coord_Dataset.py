@@ -7,8 +7,8 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 class Coord_Dataset(Dataset):
-    def __init__(self, cfg):
-        self.data = self.get_data(data_path=cfg.DATASET.TRAIN_PATH)
+    def __init__(self, train_path):
+        self.data = self.get_data(data_path=train_path)
         self.vocab = self.get_vocab()
         self.train_data = self.preprocess()
 

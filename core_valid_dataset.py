@@ -15,8 +15,8 @@ from easydict import EasyDict as edict
 from utils.function import plot_tsne_with_centroids
 from utils.AverageMeter import AverageMeter
 
-from model.arc_margin_loss import AddMarginProduct
-from model.LiArcFace_bk import LiArcFace
+from model.arc_margin_loss_for_various_testcases import AddMarginProduct
+from model.LiArcFace import LiArcFace
 from loader.Coord_Dataset import Coord_Dataset
 
 def gen_config(config_file):
@@ -47,7 +47,7 @@ if __name__ == '__main__':
         fc_metric = AddMarginProduct(in_features=4, out_features=512, num_class=NUM_JOINTS, s=30.0, m=0.40, device=device).to(device)
 
     elif config.TRAIN.LOSS == 'ArcFace':
-        fc_metric = LiArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS, s=30.0, m=0.40,
+        fc_metric = LiArcFace(config=config, in_features=4, out_features=512, num_class=NUM_JOINTS, s=30.0, m=0.40,
                                      device=device).to(device)
 
     if config.PRETRAINED:
@@ -55,11 +55,17 @@ if __name__ == '__main__':
         fc_metric.load_state_dict(state_dict)
         print('load weight...' + config.PRETRAINED_PATH)
         print(fc_metric)
-    criterion = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.AdamW(fc_metric.parameters(), lr=config.TRAIN.LR)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
 
-    train_dataset = Coord_Dataset(cfg=config)
+    if config.PRETRAINED_EMB:
+        emb_weight = torch.load(config.PRETRAINED_EMB_PATH)
+        statedict = fc_metric.state_dict()
+        statedict['embedding.weight'] = emb_weight[:20, :512]
+        fc_metric.load_state_dict(statedict, strict=True)
+        print('load embedding weight...' + config.PRETRAINED_EMB_PATH)
+        # embedding = embedding.from_pretrained(emb_weight)
+
+
+    train_dataset = Coord_Dataset(train_path=config.DATASET.VALID_DATA_PATH)
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.TRAIN.BATCH_SIZE,
@@ -67,6 +73,11 @@ if __name__ == '__main__':
         num_workers=config.WORKERS,
         pin_memory=True
     )
+
+    criterion = nn.CrossEntropyLoss().to(device)
+    optimizer = torch.optim.AdamW(fc_metric.parameters(), lr=config.TRAIN.LR)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
+
     if config.MODE == 'TRAIN':
         for epoch in range(config.TRAIN.EPOCH):
             batch_time = AverageMeter()

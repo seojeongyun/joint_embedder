@@ -3,6 +3,7 @@ import torch.nn.functional as F
 
 from torch import nn
 
+
 class AddMarginProduct(nn.Module):
     r"""Implement of large margin cosine distance: :
     Args:
@@ -17,70 +18,64 @@ class AddMarginProduct(nn.Module):
         super(AddMarginProduct, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        #
-        self.layer = nn.ModuleList(self.make_layer())
-        self.embedding = nn.Embedding(num_embeddings=num_class, embedding_dim=self.out_features).to(device)
-        #
-        self.m = m
         self.s = s
+        self.m = m
+        self.weight = nn.Parameter(torch.FloatTensor(20, out_features))
+        nn.init.xavier_uniform_(self.weight)
         #
-        self.weight = nn.Parameter(torch.empty(num_class, out_features)).cuda()
-        nn.init.xavier_normal_(self.weight)
+        self.embedding = nn.Embedding(num_embeddings=num_class, embedding_dim=512).to(device)
         #
-        self.atfc = nn.Mish()
-
-    def determine_layer_count(self):
-        self.ratio = self.out_features / self.in_features
+        self.linear1 = nn.Linear(in_features, out_features//4)
+        self.linear2 = nn.Linear(out_features//4, out_features//2)
+        self.linear3 = nn.Linear(out_features//2, out_features)
+        self.linear4 = nn.Linear(out_features, out_features*2)
+        self.linear5 = nn.Linear(out_features*2, out_features*4)
+        self.linear6 = nn.Linear(out_features * 4, out_features*2)
+        self.linear7 = nn.Linear(out_features * 2, out_features)
         #
-        if self.ratio <= 8:
-            return 1
-        elif self.ratio <= 16:
-            return 3
-        elif self.ratio <= 64:
-            return 5
-        else:
-            return 7
+        # self.linear1 = nn.Linear(in_features, out_features//8)
+        # self.linear2 = nn.Linear(out_features//8, out_features//4)
+        # self.linear3 = nn.Linear(out_features//4, out_features//2)
+        # self.linear4 = nn.Linear(out_features//2, out_features)
+        # self.linear5 = nn.Linear(out_features, out_features * 2)
+        # self.linear6 = nn.Linear(out_features * 2, out_features * 4)
+        # self.linear7 = nn.Linear(out_features * 4, out_features * 8)
+        # self.linear8 = nn.Linear(out_features * 8, out_features * 2)
+        # self.linear9 = nn.Linear(out_features * 2, out_features)
 
-    def make_layer(self):
-        layers = []
-        num_layers = self.determine_layer_count()
-
-        if num_layers == 1:
-            layers.append(nn.Linear(self.in_features, self.out_features, bias=False))
-
-        elif num_layers == 3:
-            layers.append(nn.Linear(self.in_features, 32, bias=True))
-            layers.append(nn.Linear(32, 128, bias=True))
-            layers.append(nn.Linear(128, self.out_features, bias=False))
-
-        elif num_layers == 5:
-            layers.append(nn.Linear(self.in_features, 32, bias=True))
-            layers.append(nn.Linear(32, 64, bias=True))
-            layers.append(nn.Linear(64, 256, bias=True))
-            layers.append(nn.Linear(256, 128, bias=True))
-            layers.append(nn.Linear(128, self.out_features, bias=False))
-
-        elif num_layers == 7:
-            layers.append(nn.Linear(self.in_features, 32, bias=True))
-            layers.append(nn.Linear(32, 64, bias=True))
-            layers.append(nn.Linear(64, 128, bias=True))
-            layers.append(nn.Linear(128, 256, bias=True))
-            layers.append(nn.Linear(256, 512, bias=True))
-            layers.append(nn.Linear(512, 256, bias=True))
-            layers.append(nn.Linear(256, self.out_features, bias=False))
-
-        return layers
+        self.ReLU = nn.ReLU()
 
     def forward(self, input, J_tokens, mode):
         output = None
-        emb_output_J_tokens = self.embedding(J_tokens)  # [B, out_feature]
-        out = input
 
-        for i, layer in enumerate(self.layer):
-            out = layer(out)
-            if i != len(self.layer) - 1:
-                out = self.atfc(out)
+        out = self.linear1(input)  # 4, 512
+        out = self.ReLU(out)
 
+        out = self.linear2(out)
+        out = self.ReLU(out)
+
+        out = self.linear3(out)
+        out = self.ReLU(out)
+
+        out = self.linear4(out)
+        out = self.ReLU(out)
+
+        out = self.linear5(out)
+        out = self.ReLU(out)
+
+        out = self.linear6(out)
+        out = self.ReLU(out)
+
+        out = self.linear7(out)
+        out = self.ReLU(out)
+
+        # out = self.linear8(out)
+        # out = self.ReLU(out)
+        #
+        # out = self.linear9(out)
+        # out = self.ReLU(out)
+
+        emb_output_J_tokens = self.embedding(J_tokens)  # 4, 512
         embedding_vec = out + emb_output_J_tokens
 
         if mode == 'training':

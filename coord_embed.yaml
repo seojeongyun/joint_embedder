@@ -1,78 +1,95 @@
 DATASET:
   NUM_JOINTS: 20
-  TRAIN_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
+  TRAIN_DATA_PATH:
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_63.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_18.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_74.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_52.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_19.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_14.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_27.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_46.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_21.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_1.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_15.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_58.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_13.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_31.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_4.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_38.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_47.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_59.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_24.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_37.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_62.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_40.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_11.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_23.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_60.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_35.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_55.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_17.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_57.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_67.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_43.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_39.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_69.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_70.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_12.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_28.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_16.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_22.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_33.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_34.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_32.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_42.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_72.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_10.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_75.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_29.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_5.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_49.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_65.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_64.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_54.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_41.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_26.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_48.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_53.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_3.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_61.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_50.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_56.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_25.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_6.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_2.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_73.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_7.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_20.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_45.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_71.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_68.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_30.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_36.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_0.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_9.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_8.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_44.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_66.json
+  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_51.json
+  VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
 GPUS: '0'
-MODE: TRAIN
-PRETRAINED: false
-PRETRAINED_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_49.pth.tar
+MODE: TEST
+PRETRAINED: true
+PRETRAINED_EMB: false
+PRETRAINED_EMB_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt
+PRETRAINED_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_99.pth.tar
 PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
   BATCH_SIZE: 64
   EMB_DIM:
-  - 8
-  - 16
-  - 24
-  - 32
-  - 40
-  - 48
-  - 56
-  - 64
-  - 72
-  - 80
-  - 88
-  - 96
-  - 104
-  - 112
-  - 120
-  - 128
-  - 136
-  - 144
-  - 152
-  - 160
-  - 168
-  - 176
-  - 184
-  - 192
-  - 200
-  - 208
-  - 216
-  - 224
-  - 232
-  - 240
-  - 248
-  - 256
-  - 264
-  - 272
-  - 280
-  - 288
-  - 296
-  - 304
-  - 312
-  - 320
-  - 328
-  - 336
-  - 344
-  - 352
-  - 360
-  - 368
-  - 376
-  - 384
-  - 392
-  - 400
-  - 408
-  - 416
-  - 424
-  - 432
-  - 440
-  - 448
-  - 456
-  - 464
-  - 472
-  - 480
-  - 488
-  - 496
-  - 504
   - 512
   EPOCH: 100
   LOSS: ArcFace

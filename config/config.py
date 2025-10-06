@@ -1,4 +1,5 @@
 import numpy as np
+from glob import glob
 from easydict import EasyDict as edict
 
 config = edict()
@@ -10,7 +11,8 @@ config.WORKERS = 0
 
 # Dataset
 config.DATASET = edict()
-config.DATASET.TRAIN_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json'
+config.DATASET.TRAIN_DATA_PATH = glob('/home/jysuh/PycharmProjects/coord_embedding/dataset/*')
+config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json'
 config.DATASET.NUM_JOINTS = 20
 
 # Train
@@ -23,7 +25,7 @@ config.TRAIN.EPOCH = 100
 #
 config.TRAIN.S_RANGE = list(np.linspace(1,100, 100))
 config.TRAIN.M_RANGE = [round(x, 2) for x in np.arange(0.05, 0.8 + 0.001, 0.05)]
-config.TRAIN.EMB_DIM = list(range(8, 513, 8))
+config.TRAIN.EMB_DIM = [512, ]
 config.TRAIN.LOSSES = ['CosFace', 'ArcFace']
 config.TRAIN.LOSS = 'ArcFace'
 
@@ -31,9 +33,11 @@ config.TRAIN.LOSS = 'ArcFace'
 config.PRINT_FREQ = 50
 
 # PreTrained
-config.PRETRAINED = False
-config.PRETRAINED_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_49.pth.tar'
-config.MODE = 'TRAIN' # ['TRAIN',  'TEST']
+config.PRETRAINED = True
+config.PRETRAINED_EMB = False
+config.PRETRAINED_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_99.pth.tar'
+config.PRETRAINED_EMB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt'
+config.MODE = 'TEST' # ['TRAIN',  'TEST']
 
 
 # layer7_mish_epoch_99.pth.tar : {'intra_class_distance': 31.6380558013916, 'inter_class_similarity': 0.8110062448601973, 'silhouette_score': 0.2400735765695572}
