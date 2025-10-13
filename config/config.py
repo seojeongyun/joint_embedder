@@ -20,7 +20,7 @@ config.TRAIN = edict()
 config.TRAIN.ONLY_METRIC_LEARN = True
 config.TRAIN.SHUFFLE = True
 #
-config.TRAIN.BATCH_SIZE = 64
+config.TRAIN.BATCH_SIZE = 1  # during test, bs = 1
 config.TRAIN.LR = 5e-4
 config.TRAIN.ACT = 'Mish'  # ['ReLU', 'Mish' ... ]
 config.TRAIN.EPOCH = 1000
@@ -57,11 +57,11 @@ config.FILE_NAME = '[' + f'{config.TRAIN.LOSS}' + ']:' \
                        + ' perplexity:' + f'{config.VIS.TSNE_PERPLEXITY}'
 
 # PreTrained
-config.PRETRAINED = False
+config.PRETRAINED = True
 config.PRETRAINED_EMB = False
-config.PRETRAINED_PATH = f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{config.FILE_NAME}'
+config.PRETRAINED_PATH = f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{config.FILE_NAME}.pth.tar'
 config.PRETRAINED_EMB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt'
-config.MODE = 'TRAIN' # ['TRAIN',  'TEST']
+config.MODE = 'TEST' # ['TRAIN',  'TEST']
 
 # layer7_mish_epoch_99.pth.tar : {'intra_class_distance': 31.6380558013916, 'inter_class_similarity': 0.8110062448601973, 'silhouette_score': 0.2400735765695572}
 

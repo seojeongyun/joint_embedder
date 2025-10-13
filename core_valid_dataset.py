@@ -141,8 +141,18 @@ if __name__ == '__main__':
         batch_time = AverageMeter()
         data_time = AverageMeter()
 
+        embedding_vectors = {}
+
         with torch.no_grad():
-            for i ,(J_coord, J_tokens) in enumerate(train_loader):
+            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW) in enumerate(train_loader):
+                a_frame = []
+                WRKOUT_TKN = int(WRKOUT[0])
+                VIEW_TKN = int(VIEW[0])
+                FRAME_TKN = int(FRAME[0])
+                #
+                embedding_vectors.setdefault(WRKOUT_TKN, {})
+                embedding_vectors[WRKOUT_TKN].setdefault(VIEW_TKN, {})
+                #
                 J_coord = J_coord.to(device)
                 J_tokens = J_tokens.to(device)
 
@@ -151,7 +161,11 @@ if __name__ == '__main__':
 
                     all_feats.append(embedding_vec)          # List of [BS, 512]
                     all_labels.append(J_tokens[:, idx])      # List of [BS]
-
+                    #
+                    a_frame.append(embedding_vec)
+                #
+                embedding_vectors[WRKOUT_TKN][VIEW_TKN].setdefault(FRAME_TKN, a_frame)
+            #
         all_feats = torch.cat(all_feats, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
 

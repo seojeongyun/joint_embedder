@@ -41,10 +41,10 @@ class Coord_Dataset(Dataset):
         for exercise_name, exercise_name_token in tqdm(self.vocab.items(), desc='preprocessing'):
             if self.is_contains_korean(exercise_name):
                 for frame_idx in self.data[exercise_name].keys():
-                    for view_idx in self.data[exercise_name][frame_idx].keys():
+                    for idx, view_idx in enumerate(self.data[exercise_name][frame_idx].keys()):
                         sample = self.data[exercise_name][frame_idx][view_idx]
                         for joint_name in sample.keys():
-                            sample[joint_name] = sample[joint_name] + [self.vocab[joint_name]] + [exercise_name_token]
+                            sample[joint_name] = sample[joint_name] + [self.vocab[joint_name]] + [exercise_name_token] + [int(frame_idx)] + [idx]
                         train_data.append(sample) # sample = {'head' : [x,y]}, v = exercise_name
         return train_data
 
@@ -54,8 +54,11 @@ class Coord_Dataset(Dataset):
     def __getitem__(self, idx):
         # [20, 4] = [NUM_JOINTS, (X, Y, JOINT_IDX, EXERCISE_IDX)]
         joint_coord_info = self.train_data[idx]
-        joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)
+        joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, :4]
         joint_indices = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, 2].long()
+        exercise_name = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 3][0]
+        frame_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 4][0]
+        view_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 5][0]
         # joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, [0, 1, 3]]
 
-        return joint_coord, joint_indices
+        return joint_coord, joint_indices, exercise_name, frame_idx, view_idx

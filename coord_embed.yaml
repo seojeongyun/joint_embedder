@@ -82,17 +82,17 @@ DATASET:
 FILE_NAME: '[CosFace]: activation:Mish only_metric:True total epoch:1000 warmup:True
   max_iter:1000 perplexity:40'
 GPUS: '0'
-MODE: TRAIN
-PRETRAINED: false
+MODE: TEST
+PRETRAINED: true
 PRETRAINED_EMB: false
 PRETRAINED_EMB_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt
 PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[CosFace]:
-  activation:Mish only_metric:True total epoch:1000 warmup:True max_iter:1000 perplexity:40'
+  activation:Mish only_metric:True total epoch:1000 warmup:True max_iter:1000 perplexity:40.pth.tar'
 PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
   ACT: Mish
-  BATCH_SIZE: 64
+  BATCH_SIZE: 1
   EMB_DIM:
   - 512
   EPOCH: 1000
