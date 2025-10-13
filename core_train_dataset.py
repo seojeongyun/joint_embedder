@@ -15,8 +15,8 @@ from easydict import EasyDict as edict
 from utils.function import plot_tsne_with_centroids
 from utils.AverageMeter import AverageMeter
 
-from model.arc_margin_loss_for_various_testcases import AddMarginProduct
-from model.LiArcFace import LiArcFace
+from model.CosFace_for_various_testcases import AddMarginProduct
+from model.ArcFace import LiArcFace
 from loader.Coord_Dataset import Coord_Dataset
 
 def gen_config(config_file):

@@ -79,24 +79,28 @@ DATASET:
   - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_66.json
   - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_51.json
   VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
+FILE_NAME: '[CosFace]: activation:Mish only_metric:True total epoch:1000 warmup:True
+  max_iter:1000 perplexity:40'
 GPUS: '0'
-MODE: TEST
-PRETRAINED: true
+MODE: TRAIN
+PRETRAINED: false
 PRETRAINED_EMB: false
 PRETRAINED_EMB_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt
-PRETRAINED_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/epoch_99.pth.tar
+PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[CosFace]:
+  activation:Mish only_metric:True total epoch:1000 warmup:True max_iter:1000 perplexity:40'
 PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
+  ACT: Mish
   BATCH_SIZE: 64
   EMB_DIM:
   - 512
-  EPOCH: 100
-  LOSS: ArcFace
+  EPOCH: 1000
+  LOSS: CosFace
   LOSSES:
   - CosFace
   - ArcFace
-  LR: 1.0e-05
+  LR: 0.0005
   M_RANGE:
   - !!python/object/apply:numpy.core.multiarray.scalar
     - &id001 !!python/object/apply:numpy.dtype
@@ -175,6 +179,7 @@ TRAIN:
     - *id001
     - !!binary |
       mpmZmZmZ6T8=
+  ONLY_METRIC_LEARN: true
   SHUFFLE: true
   S_RANGE:
   - !!python/object/apply:numpy.core.multiarray.scalar
@@ -577,4 +582,14 @@ TRAIN:
     - *id001
     - !!binary |
       AAAAAAAAWUA=
+  WARMUP: true
+  WARMUP_EPOCH: 250
+VIS:
+  MAX_SAMPLES: 40000
+  PLOT_METRIC_METHOD: cosine
+  PLOT_SAVE_ROOT: ./embedding_result_img
+  PLOT_VISUALIZATION: true
+  TSNE_N_ITER: 1000
+  TSNE_PERPLEXITY: 40
+  TSNE_RANDOM_SEED: 614
 WORKERS: 0

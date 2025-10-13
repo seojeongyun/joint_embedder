@@ -55,6 +55,7 @@ class Coord_Dataset(Dataset):
         # [20, 4] = [NUM_JOINTS, (X, Y, JOINT_IDX, EXERCISE_IDX)]
         joint_coord_info = self.train_data[idx]
         joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)
-        joint_indices = joint_coord[:, 2].long()
+        joint_indices = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, 2].long()
+        # joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, [0, 1, 3]]
 
         return joint_coord, joint_indices
