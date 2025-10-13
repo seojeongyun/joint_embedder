@@ -81,6 +81,7 @@ DATASET:
   VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
 FILE_NAME: '[CosFace]: activation:Mish only_metric:True total epoch:1000 warmup:True
   max_iter:1000 perplexity:40'
+GEN_BERT_DATASET: true
 GPUS: '0'
 MODE: TEST
 PRETRAINED: true

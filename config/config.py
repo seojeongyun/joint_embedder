@@ -4,6 +4,8 @@ from easydict import EasyDict as edict
 
 config = edict()
 
+config.GEN_BERT_DATASET = True
+
 # GPU / WORKERS
 config.SEED = 8438
 config.GPUS = '0'
