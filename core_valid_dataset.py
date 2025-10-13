@@ -154,10 +154,10 @@ if __name__ == '__main__':
                     #
                     embedding_vectors.setdefault(WRKOUT_TKN, {})
                     embedding_vectors[WRKOUT_TKN].setdefault(VIEW_TKN, {})
-
+                    embedding_vectors[WRKOUT_TKN][VIEW_TKN].setdefault(FRAME_TKN, [])
                     if c_WRKOUT != WRKOUT_TKN:
                         one_hot = torch.zeros(26)      # the number of wrkout = 26
-                        one_hot[c_WRKOUT-20] = 1
+                        one_hot[WRKOUT_TKN-20] = 1
                         embedding_vectors[WRKOUT_TKN].setdefault('label', one_hot)
                     #
                 #
@@ -171,9 +171,9 @@ if __name__ == '__main__':
                     all_labels.append(J_tokens[:, idx])      # List of [BS]
                     #
                     if config.GEN_BERT_DATASET:
-                        a_frame.append(embedding_vec.cpu().detach().numpy())
+                        a_frame.append(embedding_vec)
                 #
-                embedding_vectors[WRKOUT_TKN][VIEW_TKN].setdefault(FRAME_TKN, a_frame)
+                embedding_vectors[WRKOUT_TKN][VIEW_TKN][FRAME_TKN].append(a_frame)
                 c_WRKOUT = WRKOUT_TKN
             #
         all_feats = torch.cat(all_feats, dim=0)
@@ -181,3 +181,25 @@ if __name__ == '__main__':
 
         score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels, vocab=train_dataset.vocab)
         print(score)
+
+        if config.GEN_BERT_DATASET:
+            diff = False
+            renew = {}
+
+            for wrkout in embedding_vectors.keys():
+                renew.setdefault(wrkout, {})
+                for view in embedding_vectors[wrkout].keys():
+                    renew[wrkout].setdefault(view, {})
+                    if view != 'label':
+                        for key, value in sorted(embedding_vectors[wrkout][view].items(), key=lambda x: x[0]):
+                            renew[wrkout][view][key] = value
+
+            for wrkout in embedding_vectors.keys():
+                for view in embedding_vectors[wrkout].keys():
+                    if view != 'label':
+                        for frame in embedding_vectors[wrkout][view].keys():
+                            for joint in range(len(embedding_vectors[wrkout][view][frame])):
+                                if not renew[wrkout][view][frame][joint] == embedding_vectors[wrkout][view][frame][joint]:
+                                    diff = True
+            if not diff:
+                torch.save(renew, f'/home/jysuh/PycharmProjects/coord_embedding/bert_dataset/{config.FILE_NAME}.pth.tar')
