@@ -276,4 +276,5 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
         with open(os.path.join(out_dir, "config.yaml"), "w") as f:
             yaml.dump(dict(config), f, allow_unicode=True, default_flow_style=False)
 
+        print(f"SAVE Done ! in {out_dir}")
     return metrics

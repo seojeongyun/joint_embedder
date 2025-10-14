@@ -1,8 +1,10 @@
+from email.policy import default
+
 import torch
 
 import yaml
 import time
-import logging
+from tqdm import tqdm
 import random
 import numpy as np
 
@@ -141,24 +143,34 @@ if __name__ == '__main__':
         batch_time = AverageMeter()
         data_time = AverageMeter()
 
-        embedding_vectors = {}
+        if config.GEN_BERT_DATASET:
+            from collections import defaultdict
+            video_counter = defaultdict(int)
+            embedding_vectors = {}
 
         c_WRKOUT = 0
         with torch.no_grad():
-            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW) in enumerate(train_loader):
-                a_frame = []
+            # J_coord = [x,y,j_idx,wrkout_idx]
+            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW) in tqdm(enumerate(train_loader), total=len(train_loader)):
                 if config.GEN_BERT_DATASET:
+                    a_frame = []
                     WRKOUT_TKN = int(WRKOUT[0])
                     VIEW_TKN = int(VIEW[0])
                     FRAME_TKN = int(FRAME[0])
                     #
+                    VIDEO_IDX = video_counter[WRKOUT_TKN]
+                    #
                     embedding_vectors.setdefault(WRKOUT_TKN, {})
-                    embedding_vectors[WRKOUT_TKN].setdefault(VIEW_TKN, {})
-                    embedding_vectors[WRKOUT_TKN][VIEW_TKN].setdefault(FRAME_TKN, [])
+                    embedding_vectors[WRKOUT_TKN].setdefault('Video', {})
+                    #
+                    video_counter[WRKOUT_TKN] += 1
+                    #
+                    embedding_vectors[WRKOUT_TKN]['Video'].setdefault(VIEW_TKN, {})
+                    embedding_vectors[WRKOUT_TKN]['Video'][VIEW_TKN].setdefault(FRAME_TKN, [])
                     if c_WRKOUT != WRKOUT_TKN:
-                        one_hot = torch.zeros(26)      # the number of wrkout = 26
+                        one_hot = torch.zeros(27)      # the number of wrkout = 26
                         one_hot[WRKOUT_TKN-20] = 1
-                        embedding_vectors[WRKOUT_TKN].setdefault('label', one_hot)
+                        embedding_vectors[WRKOUT_TKN].setdefault('Label', one_hot)
                     #
                 #
                 J_coord = J_coord.to(device)
@@ -173,8 +185,9 @@ if __name__ == '__main__':
                     if config.GEN_BERT_DATASET:
                         a_frame.append(embedding_vec)
                 #
-                embedding_vectors[WRKOUT_TKN][VIEW_TKN][FRAME_TKN].append(a_frame)
-                c_WRKOUT = WRKOUT_TKN
+                if config.GEN_BERT_DATASET:
+                    embedding_vectors[WRKOUT_TKN]['Video'][VIEW_TKN][FRAME_TKN].append(a_frame)
+                    c_WRKOUT = WRKOUT_TKN
             #
         all_feats = torch.cat(all_feats, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
@@ -188,18 +201,19 @@ if __name__ == '__main__':
 
             for wrkout in embedding_vectors.keys():
                 renew.setdefault(wrkout, {})
-                for view in embedding_vectors[wrkout].keys():
-                    renew[wrkout].setdefault(view, {})
-                    if view != 'label':
-                        for key, value in sorted(embedding_vectors[wrkout][view].items(), key=lambda x: x[0]):
-                            renew[wrkout][view][key] = value
+                for video in embedding_vectors[wrkout]['Video'].keys():
+                    renew[wrkout]['Video'].setdefault(video, {})
+                    for view in embedding_vectors[wrkout]['Video'].keys():
+                        for key, value in sorted(embedding_vectors[wrkout]['Video'][view].items(), key=lambda x: x[0]):
+                            renew[wrkout]['Video'][view][key] = value
 
             for wrkout in embedding_vectors.keys():
-                for view in embedding_vectors[wrkout].keys():
-                    if view != 'label':
-                        for frame in embedding_vectors[wrkout][view].keys():
-                            for joint in range(len(embedding_vectors[wrkout][view][frame])):
-                                if not renew[wrkout][view][frame][joint] == embedding_vectors[wrkout][view][frame][joint]:
+                for video in embedding_vectors[wrkout]['Video'].keys():
+                    for view in embedding_vectors[wrkout]['Video'].keys():
+                        for frame in embedding_vectors[wrkout]['Video'][view].keys():
+                            for joint in range(len(embedding_vectors[wrkout]['Video'][view][frame])):
+                                if not renew[wrkout]['Video'][view][frame][joint] == embedding_vectors[wrkout]['Video'][view][frame][joint]:
                                     diff = True
+
             if not diff:
                 torch.save(renew, f'/home/jysuh/PycharmProjects/coord_embedding/bert_dataset/{config.FILE_NAME}.pth.tar')
