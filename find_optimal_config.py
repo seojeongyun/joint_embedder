@@ -51,6 +51,7 @@ if __name__ == '__main__':
     NUM_JOINTS = config.DATASET.NUM_JOINTS
 
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_dataset = Coord_Dataset(data_path=config.DATASET.TRAIN_DATA_PATH)
     train_loader = torch.utils.data.DataLoader(
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     valid_loader = torch.utils.data.DataLoader(
         valid_dataset,
         batch_size=config.VALID.BATCH_SIZE,
-        shuffle=config.TRAIN.SHUFFLE,
+        shuffle=False,
         num_workers=config.WORKERS,
         pin_memory=True,
         collate_fn=valid_dataset.collate_fn
@@ -180,7 +181,6 @@ if __name__ == '__main__':
                     lr = scheduler.get_last_lr()[0]
                     writer.add_scalar('TRAIN/lr', lr, epoch)
                 #
-                writer.close()
                 torch.save(fc_metric.state_dict(),
                            f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/find_optimal_model/{file_name}.pth.tar')
                 #
@@ -211,3 +211,4 @@ if __name__ == '__main__':
                     joint_name = valid_label2name[joint_idx]
                     writer.add_scalar(f'VAL/Silhouette/{joint_name}', score['silhouette_score_per_class'][joint_idx])
                 writer.add_scalar('VAL/Silhouette/avg', score['silhouette_score_orig'])
+                writer.close()

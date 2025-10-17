@@ -14,7 +14,7 @@ class CosFace(nn.Module):
         cos(theta) - m
     """
 
-    def __init__(self, in_features, out_features, num_class, only_metric, activation, s=30.0, m=0.40, device=torch.device("cpu")):
+    def __init__(self, in_features, out_features, num_class, use_embedding, activation, s=30.0, m=0.40, device=torch.device("cpu")):
         super(CosFace, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -23,7 +23,7 @@ class CosFace(nn.Module):
         self.weight = nn.Parameter(torch.FloatTensor(num_class, out_features))
         nn.init.xavier_uniform_(self.weight)
         #
-        self.only_metric = only_metric
+        self.use_embedding = use_embedding
         #
         self.embedding = nn.Embedding(num_embeddings=num_class, embedding_dim=out_features).to(device)
         #
@@ -60,10 +60,10 @@ class CosFace(nn.Module):
                 # out = nn.BatchNorm1d(out.shape[-1])(out)
                 out = self.atfc(out)
 
-        if self.only_metric:
-            embedding_vec = out
-        else:
+        if self.use_embedding:
             embedding_vec = out + emb_output_J_tokens
+        else:
+            embedding_vec = out
 
         if mode == 'training':
             label = J_tokens

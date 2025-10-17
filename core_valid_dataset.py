@@ -51,10 +51,10 @@ if __name__ == '__main__':
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
 
     if config.TRAIN.LOSS == 'CosFace':
-        fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, only_metric=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
+        fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
 
     elif config.TRAIN.LOSS == 'ArcFace':
-        fc_metric = ArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS,  only_metric=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20,device=device).to(device)
+        fc_metric = ArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.10,device=device).to(device)
 
 
     if config.PRETRAINED:
