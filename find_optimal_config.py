@@ -84,7 +84,7 @@ if __name__ == '__main__':
     data_time = AverageMeter()
     losses = AverageMeter()
 
-    # To collect data for model test
+    # To collect data for model test.
     TRAIN_TOTAL_ITERS = len(train_loader)
     train_random_indices = set(random.sample(range(TRAIN_TOTAL_ITERS), config.TRAIN.NUM_SAMPLE))
     #
