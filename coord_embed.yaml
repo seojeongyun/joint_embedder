@@ -1,27 +1,30 @@
 DATASET:
   NUM_JOINTS: 20
-  TRAIN_DATA_PATH:
-  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_valid.json
-  - /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
-  VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_data_valid.json
-FILE_NAME: '[ArcFace]: activation:Mish only_metric:True total epoch:1000 warmup:True
+  TRAIN_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json
+  VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_valid_data.json
+FILE_NAME: '[CosFace]: activation:Mish use_emb:False total epoch:1000 warmup:False
   max_iter:1000 perplexity:40'
+GEN_BERT_DATASET: true
 GPUS: '0'
-MODE: TRAIN
-PRETRAINED: false
-PRETRAINED_EMB: false
-PRETRAINED_EMB_PATH: /home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt
-PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[ArcFace]:
+MODE: TEST
+PRETRAINED: true
+PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[CosFace]:
   activation:Mish only_metric:True total epoch:1000 warmup:True max_iter:1000 perplexity:40.pth.tar'
-PRINT_FREQ: 1
+PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
   ACT: Mish
+  ACT_LIST:
+  - ReLU
+  - GELU
   BATCH_SIZE: 64
   EMB_DIM:
+  - 64
+  - 128
+  - 256
   - 512
   EPOCH: 1000
-  LOSS: ArcFace
+  LOSS: CosFace
   LOSSES:
   - CosFace
   - ArcFace
@@ -104,7 +107,7 @@ TRAIN:
     - *id001
     - !!binary |
       mpmZmZmZ6T8=
-  ONLY_METRIC_LEARN: true
+  NUM_SAMPLE: 2
   SHUFFLE: true
   S_RANGE:
   - !!python/object/apply:numpy.core.multiarray.scalar
@@ -507,8 +510,15 @@ TRAIN:
     - *id001
     - !!binary |
       AAAAAAAAWUA=
-  WARMUP: true
+  USE_EMB: false
+  USE_EMB_LIST:
+  - true
+  - false
+  WARMUP: false
   WARMUP_EPOCH: 250
+VALID:
+  BATCH_SIZE: 1
+  NUM_SAMPLE: 100
 VIS:
   MAX_SAMPLES: 40000
   PLOT_METRIC_METHOD: cosine

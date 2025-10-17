@@ -79,12 +79,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
     classes = np.unique(y)
     C = len(classes)
 
-    # ---------- (A) 512D quantitative evaluation: inter-class & silhouette ----------
-    if N > config.VIS.MAX_SAMPLES:
-        idx_o = np.linspace(0, N - 1, num=config.VIS.MAX_SAMPLES, dtype=int)
-        Xo, yo = X[idx_o], y[idx_o]
-    else:
-        Xo, yo = X, y
+    Xo, yo = X, y
 
     # If metric == 'cosine', L2 normalization is recommended
     Xo_eval = normalize(Xo, axis=1) if config.VIS.PLOT_METRIC_METHOD == "cosine" else Xo
@@ -101,7 +96,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
         "num_samples": int(N),
         "num_classes": int(C),
         "feat_dim": int(D),
-        "metric_512d": config.VIS.PLOT_METRIC_METHOD,
+        f"metric_{D}d": config.VIS.PLOT_METRIC_METHOD,
     }
 
     if len(class_means) >= 2:
@@ -142,14 +137,14 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
         metrics["dunn_index_orig"] = float("nan")
 
     # ---------- (B) 2D t-SNE: visualization only ----------
-    X2 = TSNE(
-        n_components=2, init="pca", learning_rate="auto",
-        perplexity=config.VIS.TSNE_PERPLEXITY, random_state=config.VIS.TSNE_RANDOM_SEED,
-        n_iter=config.VIS.TSNE_N_ITER
-    ).fit_transform(X)  # use the entire X for visualization (can be sampled if needed)
+    if config.VIS.PLOT_VISUALIZATION:
+        X2 = TSNE(
+            n_components=2, init="pca", learning_rate="auto",
+            perplexity=config.VIS.TSNE_PERPLEXITY, random_state=config.VIS.TSNE_RANDOM_SEED,
+            n_iter=config.VIS.TSNE_N_ITER
+        ).fit_transform(X)  # use the entire X for visualization (can be sampled if needed)
 
     # ---------- (C) Visualization ----------
-    if config.VIS.PLOT_VISUALIZATION:
         out_dir = os.path.join(config.VIS.PLOT_SAVE_ROOT, config.FILE_NAME)
         os.makedirs(out_dir, exist_ok=True)
 
@@ -214,7 +209,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
                             ha="right" if dunn_val > 1.0 else "left", va="top")
             # -------------------------------------------------------------------------------
 
-            ax_sil.set_title("Silhouette plot per cluster (512D)")
+            ax_sil.set_title(f"Silhouette plot per cluster ({D}D)")
             ax_sil.set_xlabel("Silhouette coefficient")
             ax_sil.set_ylabel("Cluster")
             ax_sil.set_xlim([-0.1, 1.0])
@@ -233,7 +228,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
                                     edgecolors='black', linewidths=1.0)
 
             ax_tsne.set_title(
-                f"t-SNE (512D to 2D) with centroids\nperp={config.VIS.TSNE_PERPLEXITY} | N={len(X)} | C={C}")
+                f"t-SNE ({D}D to 2D) with centroids\nperp={config.VIS.TSNE_PERPLEXITY} | N={len(X)} | C={C}")
             ax_tsne.set_xlabel("Dim-1");
             ax_tsne.set_ylabel("Dim-2")
             if len(classes2) <= 30:
@@ -268,13 +263,14 @@ def plot_tsne_with_centroids(config, feats, labels, vocab):
             plt.savefig(png_path, dpi=300, bbox_inches="tight")
             plt.close()
 
-        # Save metrics to file
-        with open(os.path.join(out_dir, "metrics.txt"), "w") as f:
-            for k, v in metrics.items():
-                f.write(f"{k}: {v}\n")
+            # Save metrics to file
+            with open(os.path.join(out_dir, "metrics.txt"), "w") as f:
+                for k, v in metrics.items():
+                    f.write(f"{k}: {v}\n")
 
-        with open(os.path.join(out_dir, "config.yaml"), "w") as f:
-            yaml.dump(dict(config), f, allow_unicode=True, default_flow_style=False)
+            with open(os.path.join(out_dir, "config.yaml"), "w") as f:
+                yaml.dump(dict(config), f, allow_unicode=True, default_flow_style=False)
 
         print(f"SAVE Done ! in {out_dir}")
+
     return metrics

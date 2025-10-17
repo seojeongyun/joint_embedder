@@ -8,7 +8,7 @@ from torchvision.models.vgg import make_layers
 
 
 class ArcFace(nn.Module):
-    def __init__(self, in_features, out_features, num_class, only_metric, activation, s=30.0, m=0.40, easy_margin=False, device=torch.device("cpu")):
+    def __init__(self, in_features, out_features, num_class, use_embedding, activation, s=30.0, m=0.40, easy_margin=False, device=torch.device("cpu")):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -19,7 +19,7 @@ class ArcFace(nn.Module):
         nn.init.xavier_normal_(self.weight)
         #
         self.easy_margin = easy_margin
-        self.only_metric = only_metric
+        self.use_embedding = use_embedding
         self.cos_m = math.cos(m)
         self.sin_m = math.sin(m)
 
@@ -31,11 +31,10 @@ class ArcFace(nn.Module):
         #
         self.layers = nn.ModuleList(self.make_layer())
         #
-
         if activation == 'GELU':
             self.atfc = nn.GELU()
         else:
-            self.atfc = nn.Mish()
+            self.atfc = nn.ReLU()
 
     def make_layer(self):
         layers = []
@@ -63,14 +62,15 @@ class ArcFace(nn.Module):
                 # out = nn.BatchNorm1d(out.shape[-1])(out)
                 out = self.atfc(out)
 
-        if self.only_metric:
-            embedding_vec = out
-        else:
+        if self.use_embedding:
             embedding_vec = out + emb_output_J_tokens
+        else:
+            embedding_vec = out
 
         #
         if mode == 'training':
             label = J_tokens
+
             # cos(theta)
             cosine = F.linear(F.normalize(embedding_vec), F.normalize(self.weight))
             # cos(theta + m)

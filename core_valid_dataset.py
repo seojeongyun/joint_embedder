@@ -4,10 +4,10 @@ import torch
 
 import yaml
 import time
-from tqdm import tqdm
 import random
 import numpy as np
 
+from tqdm import tqdm
 from torch import nn
 from torch.nn.modules import loss
 
@@ -51,10 +51,10 @@ if __name__ == '__main__':
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
 
     if config.TRAIN.LOSS == 'CosFace':
-        fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, only_metric=config.TRAIN.ONLY_METRIC_LEARN, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
+        fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, only_metric=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
 
     elif config.TRAIN.LOSS == 'ArcFace':
-        fc_metric = ArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS,  only_metric=config.TRAIN.ONLY_METRIC_LEARN, activation=config.TRAIN.ACT, s=10.0, m=0.20,device=device).to(device)
+        fc_metric = ArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS,  only_metric=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20,device=device).to(device)
 
 
     if config.PRETRAINED:
@@ -63,22 +63,33 @@ if __name__ == '__main__':
         print('load weight...' + config.PRETRAINED_PATH)
         print(fc_metric)
 
-    if config.PRETRAINED_EMB:
-        emb_weight = torch.load(config.PRETRAINED_EMB_PATH)
-        statedict = fc_metric.state_dict()
-        statedict['embedding.weight'] = emb_weight[:20, :512]
-        fc_metric.load_state_dict(statedict, strict=True)
-        print('load embedding weight...' + config.PRETRAINED_EMB_PATH)
-        # embedding = embedding.from_pretrained(emb_weight)
+    # if config.PRETRAINED_EMB:
+    #     emb_weight = torch.load(config.PRETRAINED_EMB_PATH)
+    #     statedict = fc_metric.state_dict()
+    #     statedict['embedding.weight'] = emb_weight[:20, :512]
+    #     fc_metric.load_state_dict(statedict, strict=True)
+    #     print('load embedding weight...' + config.PRETRAINED_EMB_PATH)
+    #     # embedding = embedding.from_pretrained(emb_weight)
 
 
-    train_dataset = Coord_Dataset(train_path=config.DATASET.VALID_DATA_PATH)
+    train_dataset = Coord_Dataset(data_path=config.DATASET.TRAIN_DATA_PATH)
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.TRAIN.BATCH_SIZE,
         shuffle=config.TRAIN.SHUFFLE,
         num_workers=config.WORKERS,
-        pin_memory=True
+        pin_memory=True,
+        collate_fn=train_dataset.collate_fn
+    )
+
+    valid_dataset = Coord_Dataset(data_path=config.DATASET.VALID_DATA_PATH)
+    valid_loader = torch.utils.data.DataLoader(
+        valid_dataset,
+        batch_size=config.VALID.BATCH_SIZE,
+        shuffle=False,
+        num_workers=config.WORKERS,
+        pin_memory=True,
+        collate_fn=valid_dataset.collate_fn
     )
 
     criterion = nn.CrossEntropyLoss().to(device)
@@ -86,17 +97,21 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
 
     if config.MODE == 'TRAIN':
+        batch_time = AverageMeter()
+        data_time = AverageMeter()
+        losses = AverageMeter()
+        #
         for epoch in range(config.TRAIN.EPOCH):
             if config.TRAIN.WARMUP:
                 m = (epoch / config.TRAIN.WARMUP_EPOCH) * 0.1 + 0.1
                 s = (epoch / config.TRAIN.WARMUP_EPOCH) * 10 + 10
-            batch_time = AverageMeter()
-            data_time = AverageMeter()
-            losses = AverageMeter()
-
+            batch_time.reset()
+            data_time.reset()
+            losses.reset()
+            #
             end = time.time()
             #
-            for i ,(J_coord, J_tokens) in enumerate(train_loader):
+            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW, VIDEO) in enumerate(train_loader):
                 loss = 0
                 J_coord = J_coord.to(device)
                 J_tokens = J_tokens.to(device)
@@ -143,6 +158,10 @@ if __name__ == '__main__':
         batch_time = AverageMeter()
         data_time = AverageMeter()
 
+        # To collect data for model test
+        TOTAL_ITERS = len(valid_loader)
+        random_indices = set(random.sample(range(TOTAL_ITERS), config.VALID.NUM_SAMPLE))
+        #
         if config.GEN_BERT_DATASET:
             from collections import defaultdict
             video_counter = defaultdict(int)
@@ -151,24 +170,28 @@ if __name__ == '__main__':
         c_WRKOUT = 0
         with torch.no_grad():
             # J_coord = [x,y,j_idx,wrkout_idx]
-            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW) in tqdm(enumerate(train_loader), total=len(train_loader)):
+            for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW, VIDEO) in tqdm(enumerate(valid_loader), total=len(valid_loader)):
+                if len(VIDEO) == 0:
+                    continue
+
                 if config.GEN_BERT_DATASET:
                     a_frame = []
                     WRKOUT_TKN = int(WRKOUT[0])
                     VIEW_TKN = int(VIEW[0])
                     FRAME_TKN = int(FRAME[0])
                     #
-                    VIDEO_IDX = video_counter[WRKOUT_TKN]
+                    VIDEO_IDX = int(VIDEO[0])
                     #
                     embedding_vectors.setdefault(WRKOUT_TKN, {})
                     embedding_vectors[WRKOUT_TKN].setdefault('Video', {})
                     #
                     video_counter[WRKOUT_TKN] += 1
                     #
-                    embedding_vectors[WRKOUT_TKN]['Video'].setdefault(VIEW_TKN, {})
-                    embedding_vectors[WRKOUT_TKN]['Video'][VIEW_TKN].setdefault(FRAME_TKN, [])
+                    embedding_vectors[WRKOUT_TKN]['Video'].setdefault(VIDEO_IDX, {})
+                    embedding_vectors[WRKOUT_TKN]['Video'][VIDEO_IDX].setdefault(VIEW_TKN, {})
+                    embedding_vectors[WRKOUT_TKN]['Video'][VIDEO_IDX][VIEW_TKN].setdefault(FRAME_TKN, [])
                     if c_WRKOUT != WRKOUT_TKN:
-                        one_hot = torch.zeros(27)      # the number of wrkout = 26
+                        one_hot = torch.zeros(len(valid_dataset.vocab.keys()))      # the number of wrkout = 26
                         one_hot[WRKOUT_TKN-20] = 1
                         embedding_vectors[WRKOUT_TKN].setdefault('Label', one_hot)
                     #
@@ -178,21 +201,21 @@ if __name__ == '__main__':
 
                 for idx in range(NUM_JOINTS):
                     _, embedding_vec = fc_metric(input=J_coord[:, idx, :], J_tokens=J_tokens[:, idx], mode='validation')
-
-                    all_feats.append(embedding_vec)          # List of [BS, 512]
-                    all_labels.append(J_tokens[:, idx])      # List of [BS]
+                    if i in random_indices:
+                        all_feats.append(embedding_vec.detach().cpu())          # List of [BS, 512]
+                        all_labels.append(J_tokens[:, idx].detach().cpu())      # List of [BS]
                     #
                     if config.GEN_BERT_DATASET:
-                        a_frame.append(embedding_vec)
+                        a_frame.append(embedding_vec.detach().cpu())
                 #
                 if config.GEN_BERT_DATASET:
-                    embedding_vectors[WRKOUT_TKN]['Video'][VIEW_TKN][FRAME_TKN].append(a_frame)
+                    embedding_vectors[WRKOUT_TKN]['Video'][VIDEO_IDX][VIEW_TKN][FRAME_TKN].append(a_frame)
                     c_WRKOUT = WRKOUT_TKN
             #
         all_feats = torch.cat(all_feats, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
 
-        score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels, vocab=train_dataset.vocab)
+        score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels, vocab=valid_dataset.vocab)
         print(score)
 
         if config.GEN_BERT_DATASET:
@@ -201,18 +224,20 @@ if __name__ == '__main__':
 
             for wrkout in embedding_vectors.keys():
                 renew.setdefault(wrkout, {})
+                renew[wrkout].setdefault('Video', {})
                 for video in embedding_vectors[wrkout]['Video'].keys():
                     renew[wrkout]['Video'].setdefault(video, {})
-                    for view in embedding_vectors[wrkout]['Video'].keys():
-                        for key, value in sorted(embedding_vectors[wrkout]['Video'][view].items(), key=lambda x: x[0]):
-                            renew[wrkout]['Video'][view][key] = value
+                    for view in embedding_vectors[wrkout]['Video'][video].keys():
+                        renew[wrkout]['Video'][video].setdefault(view, {})
+                        for key, value in sorted(embedding_vectors[wrkout]['Video'][video][view].items(), key=lambda x: x[0]):
+                            renew[wrkout]['Video'][video][view][key] = value
 
             for wrkout in embedding_vectors.keys():
                 for video in embedding_vectors[wrkout]['Video'].keys():
-                    for view in embedding_vectors[wrkout]['Video'].keys():
-                        for frame in embedding_vectors[wrkout]['Video'][view].keys():
-                            for joint in range(len(embedding_vectors[wrkout]['Video'][view][frame])):
-                                if not renew[wrkout]['Video'][view][frame][joint] == embedding_vectors[wrkout]['Video'][view][frame][joint]:
+                    for view in embedding_vectors[wrkout]['Video'][video].keys():
+                        for frame in embedding_vectors[wrkout]['Video'][video][view].keys():
+                            for joint in range(len(embedding_vectors[wrkout]['Video'][video][view][frame])):
+                                if not renew[wrkout]['Video'][video][view][frame][joint] == embedding_vectors[wrkout]['Video'][video][view][frame][joint]:
                                     diff = True
 
             if not diff:
