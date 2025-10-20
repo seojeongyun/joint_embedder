@@ -19,7 +19,14 @@ config.DATASET.TRAIN_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/da
 # embedding_valid_data.json : for a workout, have one video
 config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_valid_data.json'
 config.DATASET.NUM_JOINTS = 20
+config.DATASET.TARGET_SIZE = (1920, 1080)
 
+# Model
+config.MODEL = edict()
+config.MODEL.IN_CHANNELS = 4
+config.MODEL.OUT_CHANNELS = 1024
+config.MODEL.NUM_LAYERS = [2, 4, 6] # for find_optimal_config
+config.MODEL.NUM_LAYER = 6  # for train
 
 # Train
 config.TRAIN = edict()
@@ -31,10 +38,9 @@ config.TRAIN.BATCH_SIZE = 64  # during test, bs = 1
 config.TRAIN.LR = 5e-4
 config.TRAIN.ACT = 'GELU'  # ['ReLU', 'Mish' ... ]
 config.TRAIN.ACT_LIST = ['ReLU', 'GELU']
-config.TRAIN.EPOCH = 1000
+config.TRAIN.EPOCH = 30
 config.TRAIN.WARMUP = True
-config.TRAIN.WARMUP_EPOCH = 250
-#
+config.TRAIN.WARMUP_EPOCH = 150
 config.TRAIN.NUM_SAMPLE = 2 # NUM_SAMPLE * 20(num_joint) * config.TRAIN.BATCH_SIZE
 
 
@@ -67,14 +73,13 @@ config.FILE_NAME = '[' + f'{config.TRAIN.LOSS}' + ']:' \
                        + ' use_emb:' + f'{config.TRAIN.USE_EMB}' \
                        + ' total epoch:' + f'{config.TRAIN.EPOCH}' \
                        + ' warmup:' + f'{config.TRAIN.WARMUP}' \
-                       + ' max_iter:' + f'{config.VIS.TSNE_N_ITER}' \
-                       + ' perplexity:' + f'{config.VIS.TSNE_PERPLEXITY}'
+                       + ' norm'
 
 # PreTrained
-config.PRETRAINED = False
+config.PRETRAINED = True
 config.PRETRAINED_PATH = f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{config.FILE_NAME}.pth.tar'
 #
 # config.PRETRAINED_EMB = False
 # config.PRETRAINED_EMB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt'
 
-config.MODE = 'TRAIN' # ['TRAIN',  'TEST']
+config.MODE = 'TEST' # ['TEST',  'TEST']

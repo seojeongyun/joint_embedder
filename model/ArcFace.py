@@ -8,8 +8,9 @@ from torchvision.models.vgg import make_layers
 
 
 class ArcFace(nn.Module):
-    def __init__(self, in_features, out_features, num_class, use_embedding, activation, s=30.0, m=0.40, easy_margin=False, device=torch.device("cpu")):
+    def __init__(self, num_layer, in_features, out_features, num_class, use_embedding, activation, s=30.0, m=0.40, easy_margin=False, device=torch.device("cpu")):
         super().__init__()
+        self.num_layer = num_layer
         self.in_features = in_features
         self.out_features = out_features
         self.m = m
@@ -38,13 +39,28 @@ class ArcFace(nn.Module):
 
     def make_layer(self):
         layers = []
-        layers.append(nn.Linear(self.in_features, 32, bias=True))
-        layers.append(nn.Linear(32, 128, bias=True))
-        layers.append(nn.Linear(128, 256, bias=True))
-        # layers.append(nn.Dropout(0.3))
-        layers.append(nn.Linear(256, 128, bias=True))
-        layers.append(nn.Linear(128, 256, bias=True))
-        layers.append(nn.Linear(256, self.out_features, bias=False))
+        if self.num_layer == 2:
+            layers.append(nn.Linear(self.in_features, self.out_features//2, bias=True))
+            layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
+        elif self.num_layer == 4:
+            layers.append(nn.Linear(self.in_features, self.out_features//4, bias=True))
+            layers.append(nn.Linear(self.out_features//4, self.out_features//2, bias=True))
+            layers.append(nn.Linear(self.out_features//2, self.out_features//4, bias=True))
+            layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
+        elif self.num_layer == 6:
+            layers.append(nn.Linear(self.in_features, self.out_features//8, bias=True))
+            layers.append(nn.Linear(self.out_features//8, self.out_features//4, bias=True))
+            layers.append(nn.Linear(self.out_features//4, self.out_features//2, bias=True))
+            layers.append(nn.Linear(self.out_features//2, self.out_features//4, bias=True))
+            layers.append(nn.Linear(self.out_features//4, self.out_features//2, bias=True))
+            layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
+            # layers.append(nn.Linear(self.in_features, 32, bias=True))
+            # layers.append(nn.Linear(32, 128, bias=True))
+            # layers.append(nn.Linear(128, 256, bias=True))
+            # # layers.append(nn.Dropout(0.3))
+            # layers.append(nn.Linear(256, 128, bias=True))
+            # layers.append(nn.Linear(128, 256, bias=True))
+            # layers.append(nn.Linear(256, self.out_features, bias=False))
         return layers
 
     def forward(self, input, J_tokens, mode, m=None, s=None):

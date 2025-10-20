@@ -1,15 +1,25 @@
 DATASET:
   NUM_JOINTS: 20
+  TARGET_SIZE:
+  - 1920
+  - 1080
   TRAIN_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json
   VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_valid_data.json
-FILE_NAME: '[ArcFace]: activation:GELU use_emb:False total epoch:1000 warmup:True
-  max_iter:1000 perplexity:40'
+FILE_NAME: '[ArcFace]: activation:GELU use_emb:False total epoch:30 warmup:True norm'
 GEN_BERT_DATASET: true
 GPUS: '0'
-MODE: TRAIN
-PRETRAINED: false
+MODE: TEST
+MODEL:
+  IN_CHANNELS: 4
+  NUM_LAYER: 6
+  NUM_LAYERS:
+  - 2
+  - 4
+  - 6
+  OUT_CHANNELS: 1024
+PRETRAINED: true
 PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[ArcFace]:
-  activation:GELU use_emb:False total epoch:1000 warmup:True max_iter:1000 perplexity:40.pth.tar'
+  activation:GELU use_emb:False total epoch:30 warmup:True norm.pth.tar'
 PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
@@ -23,7 +33,7 @@ TRAIN:
   - 128
   - 256
   - 512
-  EPOCH: 1000
+  EPOCH: 30
   LOSS: ArcFace
   LOSSES:
   - CosFace
@@ -515,7 +525,7 @@ TRAIN:
   - false
   - true
   WARMUP: true
-  WARMUP_EPOCH: 250
+  WARMUP_EPOCH: 150
 VALID:
   BATCH_SIZE: 1
   NUM_SAMPLE: 100

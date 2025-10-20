@@ -7,7 +7,8 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 class Coord_Dataset(Dataset):
-    def __init__(self, data_path):
+    def __init__(self, config, data_path):
+        self.config = config
         self.data = self.get_data(data_path=data_path)
         self.vocab = self.get_vocab()
         self.preprocessed_data = self.preprocess()
@@ -43,6 +44,8 @@ class Coord_Dataset(Dataset):
                         for idx, view_idx in enumerate(self.data[exercise_name][video_idx][frame_idx].keys()):
                             sample = self.data[exercise_name][video_idx][frame_idx][view_idx]
                             for joint_name in sample.keys():
+                                # sample[joint_name] = [int(sample[joint_name][0]/1920 * 256), int(sample[joint_name][1]/1080 * 256)]
+                                sample[joint_name] = [int(sample[joint_name][0] / self.config.DATASET.TARGET_SIZE[0]),int(sample[joint_name][1] / self.config.DATASET.TARGET_SIZE[1])]
                                 sample[joint_name] = sample[joint_name] + [self.vocab[joint_name]] + [exercise_name_token] + [int(frame_idx)] + [idx] + [int(video_idx)]
                             processed_data.append(sample) # sample = {'head' : [x,y]}, v = exercise_name
         return processed_data

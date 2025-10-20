@@ -38,6 +38,10 @@ def fix_seed(seed):
 
 if __name__ == '__main__':
     import os
+    from setproctitle import *
+
+    setproctitle('ExponentialLR-gamma:0.93/256,256')
+
 
     os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -54,7 +58,7 @@ if __name__ == '__main__':
         fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
 
     elif config.TRAIN.LOSS == 'ArcFace':
-        fc_metric = ArcFace(in_features=4, out_features=512, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.10,device=device).to(device)
+        fc_metric = ArcFace(num_layer=config.MODEL.NUM_LAYER, in_features=config.MODEL.IN_CHANNELS, out_features=config.MODEL.OUT_CHANNELS, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.10,device=device).to(device)
 
 
     if config.PRETRAINED:
@@ -72,7 +76,7 @@ if __name__ == '__main__':
     #     # embedding = embedding.from_pretrained(emb_weight)
 
 
-    train_dataset = Coord_Dataset(data_path=config.DATASET.TRAIN_DATA_PATH)
+    train_dataset = Coord_Dataset(config=config, data_path=config.DATASET.TRAIN_DATA_PATH)
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.TRAIN.BATCH_SIZE,
@@ -82,7 +86,7 @@ if __name__ == '__main__':
         collate_fn=train_dataset.collate_fn
     )
 
-    valid_dataset = Coord_Dataset(data_path=config.DATASET.VALID_DATA_PATH)
+    valid_dataset = Coord_Dataset(config=config, data_path=config.DATASET.VALID_DATA_PATH)
     valid_loader = torch.utils.data.DataLoader(
         valid_dataset,
         batch_size=config.VALID.BATCH_SIZE,
@@ -94,7 +98,8 @@ if __name__ == '__main__':
 
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.AdamW(fc_metric.parameters(), lr=config.TRAIN.LR)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.93)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.TRAIN.EPOCH, eta_min=1e-7)
 
     if config.MODE == 'TRAIN':
         batch_time = AverageMeter()
@@ -215,7 +220,7 @@ if __name__ == '__main__':
         all_feats = torch.cat(all_feats, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
 
-        score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels, vocab=valid_dataset.vocab)
+        score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels, vocab=valid_dataset.vocab, visualization=config.VIS.PLOT_VISUALIZATION)
         print(score)
 
         if config.GEN_BERT_DATASET:
@@ -242,3 +247,4 @@ if __name__ == '__main__':
 
             if not diff:
                 torch.save(renew, f'/home/jysuh/PycharmProjects/coord_embedding/bert_dataset/{config.FILE_NAME}.pth.tar')
+                print('renew == embedding vectors !! SAVE DONE')
