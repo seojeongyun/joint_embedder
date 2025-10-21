@@ -201,7 +201,7 @@ if __name__ == '__main__':
 
                     # Write the losses to TensorBoard
                     score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels,
-                                                     vocab=valid_dataset.vocab, file_name=file_name, visualization=config.VIS.PLOT_VISUALIZATION)
+                                                     vocab=valid_dataset.vocab, file_name='test' + file_name, visualization=config.VIS.PLOT_VISUALIZATION)
                     writer.add_scalar('VAL/Dunn Index', score['dunn_index_orig'])
                     for joint_idx in score['silhouette_score_per_class'].keys():
                         joint_name = valid_label2name[joint_idx]

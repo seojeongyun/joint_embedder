@@ -46,7 +46,7 @@ class ArcFace(nn.Module):
             layers.append(nn.Linear(self.in_features, self.out_features//4, bias=True))
             layers.append(nn.Linear(self.out_features//4, self.out_features//2, bias=True))
             layers.append(nn.Linear(self.out_features//2, self.out_features//4, bias=True))
-            layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
+            layers.append(nn.Linear(self.out_features//4, self.out_features, bias=False))
         elif self.num_layer == 6:
             layers.append(nn.Linear(self.in_features, self.out_features//8, bias=True))
             layers.append(nn.Linear(self.out_features//8, self.out_features//4, bias=True))

@@ -24,9 +24,9 @@ config.DATASET.TARGET_SIZE = (1920, 1080)
 # Model
 config.MODEL = edict()
 config.MODEL.IN_CHANNELS = 4
-config.MODEL.OUT_CHANNELS = 1024
-config.MODEL.NUM_LAYERS = [2, 4, 6] # for find_optimal_config
-config.MODEL.NUM_LAYER = 6  # for train
+config.MODEL.OUT_CHANNELS = 768     # 1024
+config.MODEL.NUM_LAYERS = [2, 4, 6] # [2, 4, 6] # for find_optimal_config
+config.MODEL.NUM_LAYER = 2  # for train
 
 # Train
 config.TRAIN = edict()
@@ -38,7 +38,7 @@ config.TRAIN.BATCH_SIZE = 64  # during test, bs = 1
 config.TRAIN.LR = 5e-4
 config.TRAIN.ACT = 'GELU'  # ['ReLU', 'Mish' ... ]
 config.TRAIN.ACT_LIST = ['ReLU', 'GELU']
-config.TRAIN.EPOCH = 30
+config.TRAIN.EPOCH = 1
 config.TRAIN.WARMUP = True
 config.TRAIN.WARMUP_EPOCH = 150
 config.TRAIN.NUM_SAMPLE = 2 # NUM_SAMPLE * 20(num_joint) * config.TRAIN.BATCH_SIZE
@@ -50,7 +50,7 @@ config.VALID.NUM_SAMPLE = 100
 #
 config.TRAIN.S_RANGE = list(np.linspace(1,100, 100))
 config.TRAIN.M_RANGE = [round(x, 2) for x in np.arange(0.05, 0.8 + 0.001, 0.05)]
-config.TRAIN.EMB_DIM = [64, 128, 256, 512]
+config.TRAIN.EMB_DIM = [768]
 config.TRAIN.LOSSES = ['CosFace', 'ArcFace']
 config.TRAIN.LOSS = 'ArcFace'
 
@@ -73,13 +73,15 @@ config.FILE_NAME = '[' + f'{config.TRAIN.LOSS}' + ']:' \
                        + ' use_emb:' + f'{config.TRAIN.USE_EMB}' \
                        + ' total epoch:' + f'{config.TRAIN.EPOCH}' \
                        + ' warmup:' + f'{config.TRAIN.WARMUP}' \
-                       + ' norm'
+                       + ' norm' \
+                       + ' 784'
 
 # PreTrained
-config.PRETRAINED = True
+config.PRETRAINED = False
 config.PRETRAINED_PATH = f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{config.FILE_NAME}.pth.tar'
+# config.PRETRAINED_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/find_optimal_model/[Basis+Relative] LAYERS_NUM:2 DIM:256 ACT:GELU s:10 m:0.1 norm.pth.tar'
 #
 # config.PRETRAINED_EMB = False
 # config.PRETRAINED_EMB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/kobart_embedding_weights.pt'
 
-config.MODE = 'TEST' # ['TEST',  'TEST']
+config.MODE = 'TRAIN' # ['TRAIN',  'TEST']
