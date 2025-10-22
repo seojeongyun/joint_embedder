@@ -49,6 +49,7 @@ if __name__ == '__main__':
     gen_config('/home/jysuh/PycharmProjects/coord_embedding/coord_embed.yaml')
 
     NUM_JOINTS = config.DATASET.NUM_JOINTS
+    NUM_TOKEN = config.DATASET.NUM_TOKEN
 
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -90,15 +91,19 @@ if __name__ == '__main__':
     #
     VALID_TOTAL_ITERS = len(valid_loader)
     valid_random_indices = set(random.sample(range(VALID_TOTAL_ITERS), config.VALID.NUM_SAMPLE))
+    #
+    token_idx = [i for i in range(NUM_TOKEN)]
+    token_idx = torch.LongTensor(token_idx)
+    #
 
     for num_layers in config.MODEL.NUM_LAYERS:
         for USE_EMB in config.TRAIN.USE_EMB_LIST:  # use emb
             for DIM in config.TRAIN.EMB_DIM:
                 for ACT in config.TRAIN.ACT_LIST:
                     if USE_EMB:
-                        file_name = '[Basis+Relative] ' + f'LAYERS_NUM:{num_layers} ' + f'DIM:{DIM} ' + f'ACT:{ACT} ' + 's:10 m:0.1 ' + 'norm'
+                        file_name = '[Basis+Relative] ' + f'LAYERS_NUM:{num_layers} ' + f'DIM:{DIM} ' + f'ACT:{ACT} ' + 's:10 m:0.1'
                     else:
-                        file_name = '[Relative] ' + f'LAYERS_NUM:{num_layers} '+ f'DIM:{DIM} ' + f'ACT:{ACT} ' + 's:10 m:0.1 '  + 'norm'
+                        file_name = '[Relative] ' + f'LAYERS_NUM:{num_layers} '+ f'DIM:{DIM} ' + f'ACT:{ACT} ' + 's:10 m:0.1'
                     #
                     writer = SummaryWriter(log_dir=f'./tb_logger/{file_name}')
                     #
@@ -124,12 +129,19 @@ if __name__ == '__main__':
                         for i, (J_coord, J_tokens, WRKOUT, FRAME, VIEW, VIDEO) in enumerate(train_loader):
                             if len(VIDEO) == 0:
                                 continue
+                            MINI_BATCH = WRKOUT.shape[0]
+                            #
                             loss = 0
-                            J_coord = J_coord.to(device)
-                            J_tokens = J_tokens.to(device)
+                            #
+                            dummy = torch.zeros([MINI_BATCH, NUM_TOKEN, 4]).to(device)
+                            J_coord = torch.cat([dummy, J_coord.to(device)], dim=1)
+                            #
+                            J_tokens = torch.cat((token_idx, J_tokens[0]))
+                            J_tokens = J_tokens.unsqueeze(0).repeat(MINI_BATCH, 1).to(device)
+                            #
                             optimizer.zero_grad()
 
-                            for idx in range(NUM_JOINTS):
+                            for idx in range(NUM_TOKEN + NUM_JOINTS):
                                 logits, embedding_vec = fc_metric(input=J_coord[:, idx, :], J_tokens=J_tokens[:, idx], mode='training')
                                 #
                                 if i in train_random_indices:
@@ -187,26 +199,41 @@ if __name__ == '__main__':
                     #
                     with torch.no_grad():
                         for i, (J_coord, J_tokens, WRKOUT, FRAME, VIEW, VIDEO) in tqdm(enumerate(valid_loader), total=len(valid_loader)):
-                            J_coord = J_coord.to(device)
-                            J_tokens = J_tokens.to(device)
+                            if len(VIDEO) == 0:
+                                continue
+                            MINI_BATCH = WRKOUT.shape[0]
+                            #
+                            dummy = torch.zeros([MINI_BATCH, NUM_TOKEN, 4]).to(device)
+                            J_coord = torch.cat([dummy, J_coord.to(device)], dim=1)
+                            #
+                            J_tokens = torch.cat((token_idx, J_tokens[0]))
+                            J_tokens = J_tokens.unsqueeze(0).repeat(MINI_BATCH, 1).to(device)
 
-                            for idx in range(NUM_JOINTS):
+                            for idx in range(NUM_TOKEN + NUM_JOINTS):
                                 _, embedding_vec = fc_metric(input=J_coord[:, idx, :], J_tokens=J_tokens[:, idx], mode='validation')
                                 #
-                                all_feats.append(embedding_vec.detach().cpu())  # List of [BS, 512]
-                                all_labels.append(J_tokens[:, idx].detach().cpu())  # List of [BS]
+                                if i in valid_random_indices:
+                                    all_feats.append(embedding_vec.detach().cpu())  # List of [BS, 512]
+                                    all_labels.append(J_tokens[:, idx].detach().cpu())  # List of [BS]
                         #
                     all_feats = torch.cat(all_feats, dim=0)
                     all_labels = torch.cat(all_labels, dim=0)
 
                     # Write the losses to TensorBoard
                     score = plot_tsne_with_centroids(config=config, feats=all_feats, labels=all_labels,
-                                                     vocab=valid_dataset.vocab, file_name='test' + file_name, visualization=config.VIS.PLOT_VISUALIZATION)
+                                                     vocab=valid_dataset.vocab, file_name=file_name, visualization=config.VIS.PLOT_VISUALIZATION)
                     writer.add_scalar('VAL/Dunn Index', score['dunn_index_orig'])
                     for joint_idx in score['silhouette_score_per_class'].keys():
                         joint_name = valid_label2name[joint_idx]
                         writer.add_scalar(f'VAL/Silhouette/{joint_name}', score['silhouette_score_per_class'][joint_idx])
                     writer.add_scalar('VAL/Silhouette/avg', score['silhouette_score_orig'])
                     writer.close()
-                torch.save(fc_metric.state_dict(),
-                           f'/home/jysuh/PycharmProjects/coord_embedding/checkpoint/find_optimal_model/{file_name}.pth.tar')
+
+                save_dir = f"/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{file_name}"
+                os.makedirs(save_dir, exist_ok=True)
+
+                metric_learning_model_save_path = os.path.join(save_dir, "metric_learning_model.pth.tar")
+                torch.save(fc_metric.state_dict(), metric_learning_model_save_path)
+                #
+                nn_embedding_save_path = os.path.join(save_dir, "metric_learning_model.pth.tar")
+                torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)

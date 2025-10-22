@@ -67,21 +67,24 @@ class ArcFace(nn.Module):
         output = None
         emb_output_J_tokens = self.embedding(J_tokens)  # 4, 512
         out = input
+        if input.sum() != 0:
+            for i, layer in enumerate(self.layers):
+                y = layer(out)
+                if y.shape[-1] == out.shape[-1]:
+                    out = y + out
+                else:
+                    out = y
+                if i != len(self.layers) - 1:
+                    # out = nn.BatchNorm1d(out.shape[-1])(out)
+                    out = self.atfc(out)
 
-        for i, layer in enumerate(self.layers):
-            y = layer(out)
-            if y.shape[-1] == out.shape[-1]:
-                out = y + out
+            if self.use_embedding:
+                embedding_vec = out + emb_output_J_tokens
             else:
-                out = y
-            if i != len(self.layers) - 1:
-                # out = nn.BatchNorm1d(out.shape[-1])(out)
-                out = self.atfc(out)
+                embedding_vec = out
 
-        if self.use_embedding:
-            embedding_vec = out + emb_output_J_tokens
         else:
-            embedding_vec = out
+            embedding_vec = emb_output_J_tokens
 
         #
         if mode == 'training':

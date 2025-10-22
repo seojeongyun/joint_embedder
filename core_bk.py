@@ -117,6 +117,8 @@ if __name__ == '__main__':
             end = time.time()
             #
             for i ,(J_coord, J_tokens, WRKOUT, FRAME, VIEW, VIDEO) in enumerate(train_loader):
+                if len(VIDEO) == 0:
+                    continue
                 loss = 0
                 J_coord = J_coord.to(device)
                 J_tokens = J_tokens.to(device)

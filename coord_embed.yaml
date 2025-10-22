@@ -1,15 +1,15 @@
 DATASET:
   NUM_JOINTS: 20
+  NUM_TOKEN: 2
   TARGET_SIZE:
   - 1920
   - 1080
   TRAIN_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json
   VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_valid_data.json
-FILE_NAME: '[ArcFace]: activation:GELU use_emb:False total epoch:1 warmup:True norm
-  784'
+FILE_NAME: '[PAD,SEP ArcFace]: atfc:GELU use_basis:True epoch:1 layer_num:2 out_dim768'
 GEN_BERT_DATASET: true
 GPUS: '0'
-MODE: TRAIN
+MODE: TEST
 MODEL:
   IN_CHANNELS: 4
   NUM_LAYER: 2
@@ -18,9 +18,9 @@ MODEL:
   - 4
   - 6
   OUT_CHANNELS: 768
-PRETRAINED: false
-PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[ArcFace]:
-  activation:GELU use_emb:False total epoch:1 warmup:True norm 784.pth.tar'
+PRETRAINED: true
+PRETRAINED_PATH: '/home/jysuh/PycharmProjects/coord_embedding/checkpoint/[PAD,SEP
+  ArcFace]: atfc:GELU use_basis:True epoch:1 layer_num:2 out_dim768/metric_learning_model.pth.tar'
 PRINT_FREQ: 50
 SEED: 8438
 TRAIN:
@@ -30,7 +30,12 @@ TRAIN:
   - GELU
   BATCH_SIZE: 64
   EMB_DIM:
+  - 64
+  - 128
+  - 256
+  - 512
   - 768
+  - 1024
   EPOCH: 1
   LOSS: ArcFace
   LOSSES:
@@ -518,10 +523,10 @@ TRAIN:
     - *id001
     - !!binary |
       AAAAAAAAWUA=
-  USE_EMB: false
+  USE_EMB: true
   USE_EMB_LIST:
-  - false
   - true
+  - false
   WARMUP: true
   WARMUP_EPOCH: 150
 VALID:
@@ -532,7 +537,7 @@ VIS:
   PLOT_METRIC_METHOD: cosine
   PLOT_SAVE_ROOT: ./embedding_result_img
   PLOT_VISUALIZATION: true
-  TSNE_N_ITER: 1000
-  TSNE_PERPLEXITY: 40
+  TSNE_N_ITER: 500
+  TSNE_PERPLEXITY: 70
   TSNE_RANDOM_SEED: 614
 WORKERS: 0

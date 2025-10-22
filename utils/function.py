@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score, silhouette_samples
 from sklearn.preprocessing import normalize
-
+import matplotlib.colors as mcolors
 from sklearn.metrics import pairwise_distances
 
 
@@ -179,7 +179,8 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
 
             y_lower = 10
             colors = plt.cm.get_cmap("tab20", C)
-
+            # colors = plt.cm.get_cmap("hsv", C)
+            #
             for i, c in enumerate(np.unique(yo)):
                 s_c = s_vals[yo == c]
                 if len(s_c) == 0:
