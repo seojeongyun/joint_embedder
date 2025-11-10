@@ -59,8 +59,15 @@ if __name__ == '__main__':
         fc_metric = CosFace(in_features=4, out_features=512, num_class=NUM_JOINTS, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.20, device=device).to(device)
 
     elif config.TRAIN.LOSS == 'ArcFace':
-        fc_metric = ArcFace(num_layer=config.MODEL.NUM_LAYER, in_features=config.MODEL.IN_CHANNELS, out_features=config.MODEL.OUT_CHANNELS, num_class=NUM_JOINTS+NUM_TOKEN, use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, s=10.0, m=0.10,device=device).to(device)
+        fc_metric = ArcFace(num_layer=config.BEST.NUM_LAYER, in_features=config.MODEL.IN_CHANNELS, \
+                            out_features=config.BEST.OUT_CHANNELS, num_class=NUM_JOINTS+NUM_TOKEN, \
+                            use_embedding=config.BEST.USE_EMB, activation=config.BEST.ACT, \
+                            s=config.BEST.S, m=config.BEST.M, device=device).to(device)
 
+        # fc_metric = ArcFace(num_layer=config.MODEL.NUM_LAYER, in_features=config.MODEL.IN_CHANNELS, \
+        #                     out_features=config.MODEL.OUT_CHANNELS, num_class=NUM_JOINTS+NUM_TOKEN, \
+        #                     use_embedding=config.TRAIN.USE_EMB, activation=config.TRAIN.ACT, \
+        #                     s=10, m=0.1, device=device).to(device)
 
     if config.PRETRAINED:
         state_dict = torch.load(config.PRETRAINED_PATH, map_location=device)
@@ -233,10 +240,12 @@ if __name__ == '__main__':
 
                 for idx in range(NUM_TOKEN + NUM_JOINTS):
                     _, embedding_vec = fc_metric(input=J_coord[:, idx, :], J_tokens=J_tokens[:, idx], mode='validation')
+                    #
                     if i in random_indices:
                         all_feats.append(embedding_vec.detach().cpu())          # List of [BS, 512]
                         all_labels.append(J_tokens[:, idx].detach().cpu())      # List of [BS]
                     #
+
                     if config.GEN_BERT_DATASET:
                         a_frame.append(embedding_vec.detach().cpu())
                 #

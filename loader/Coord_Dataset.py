@@ -69,10 +69,10 @@ class Coord_Dataset(Dataset):
         joint_coord_info = self.preprocessed_data[idx]
         joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, :4]
         joint_indices = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, 2].long()
-        exercise_name = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 3][0]
-        frame_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 4][0]
-        view_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 5][0]
-        video_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int8)[:, 6][0]
+        exercise_name = torch.tensor(list(joint_coord_info.values()), dtype=torch.int32)[:, 3][0]
+        frame_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int32)[:, 4][0]
+        view_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int32)[:, 5][0]
+        video_idx = torch.tensor(list(joint_coord_info.values()), dtype=torch.int32)[:, 6][0]
         # joint_coord = torch.tensor(list(joint_coord_info.values()), dtype=torch.float32)[:, [0, 1, 3]]
 
         return joint_coord, joint_indices, exercise_name, frame_idx, view_idx, video_idx

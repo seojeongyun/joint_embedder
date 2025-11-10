@@ -105,7 +105,7 @@ if __name__ == '__main__':
                     else:
                         file_name = '[Relative] ' + f'LAYERS_NUM:{num_layers} '+ f'DIM:{DIM} ' + f'ACT:{ACT} ' + 's:10 m:0.1'
                     #
-                    writer = SummaryWriter(log_dir=f'./tb_logger/{file_name}')
+                    writer = SummaryWriter(log_dir=f'./tb_logger/find_layernum_dim_atc_etc/{file_name}')
                     #
                     fc_metric = ArcFace(num_layer=num_layers, in_features=4, out_features=DIM, num_class=NUM_JOINTS,
                                         use_embedding=USE_EMB, activation=ACT, s=10.0,

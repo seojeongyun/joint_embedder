@@ -150,7 +150,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
         ).fit_transform(X)  # use the entire X for visualization (can be sampled if needed)
 
     # ---------- (C) Visualization ----------
-        out_dir = os.path.join(config.VIS.PLOT_SAVE_ROOT, file_name)
+        out_dir = os.path.join(config.VIS.PLOT_SAVE_ROOT + '/find_sm', file_name)
         os.makedirs(out_dir, exist_ok=True)
 
         # build label2name mapping once (use joint names if provided)
@@ -178,7 +178,13 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
             ax_sil, ax_tsne = ax[0], ax[1]
 
             y_lower = 10
-            colors = plt.cm.get_cmap("tab20", C)
+            colors = [
+                'red', 'blue', 'green', 'purple', 'orange', 'brown', 'pink', 'gray',
+                'olive', 'cyan', 'magenta', 'gold', 'navy', 'lime', 'teal', 'coral',
+                'darkred', 'darkblue', 'darkgreen', 'indigo', 'khaki', 'maroon'
+            ]
+
+            # colors = plt.cm.get_cmap("tab20", C)
             # colors = plt.cm.get_cmap("hsv", C)
             #
             for i, c in enumerate(np.unique(yo)):
@@ -192,7 +198,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
                 ax_sil.fill_betweenx(
                     y=np.arange(y_lower, y_upper),
                     x1=0, x2=s_c,
-                    alpha=0.7, color=colors(i)
+                    alpha=0.7, color=colors[i]
                 )
                 joint_name = label2name.get(int(c), str(int(c)))
                 ax_sil.text(-0.08, y_lower + 0.5 * size_c, joint_name, fontsize=8)
@@ -228,10 +234,13 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
             for i, c in enumerate(classes2):
                 mask = (y == c)
                 name = label2name.get(int(c), str(int(c)))
-                ax_tsne.scatter(X2[mask, 0], X2[mask, 1], s=12, alpha=0.8, label=name)
-                if centroids is not None:
-                    ax_tsne.scatter(centroids[i, 0], centroids[i, 1], s=130, marker='X',
-                                    edgecolors='black', linewidths=1.0)
+                if i in (0, 1):
+                    ax_tsne.scatter(X2[mask, 0], X2[mask, 1], s=50, alpha=0.5, label=name, c=colors[i])
+                else:
+                    ax_tsne.scatter(X2[mask, 0], X2[mask, 1], s=12, alpha=0.8, label=name, c=colors[i])
+                    if centroids is not None:
+                        ax_tsne.scatter(centroids[i, 0], centroids[i, 1], s=130, marker='X',
+                                        edgecolors='black', linewidths=1.0)
 
             ax_tsne.set_title(
                 f"t-SNE ({D}D to 2D) with centroids\nperp={config.VIS.TSNE_PERPLEXITY} | N={len(X)} | C={C}")

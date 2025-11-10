@@ -54,13 +54,6 @@ class ArcFace(nn.Module):
             layers.append(nn.Linear(self.out_features//2, self.out_features//4, bias=True))
             layers.append(nn.Linear(self.out_features//4, self.out_features//2, bias=True))
             layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
-            # layers.append(nn.Linear(self.in_features, 32, bias=True))
-            # layers.append(nn.Linear(32, 128, bias=True))
-            # layers.append(nn.Linear(128, 256, bias=True))
-            # # layers.append(nn.Dropout(0.3))
-            # layers.append(nn.Linear(256, 128, bias=True))
-            # layers.append(nn.Linear(128, 256, bias=True))
-            # layers.append(nn.Linear(256, self.out_features, bias=False))
         return layers
 
     def forward(self, input, J_tokens, mode, m=None, s=None):
