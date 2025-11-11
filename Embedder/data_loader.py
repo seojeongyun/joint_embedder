@@ -24,7 +24,7 @@ class Video_Loader(Dataset):
 
     def get_vocab(self):
         vocab = {'PAD': 0, 'SEP' : 1}
-
+        #
         exercise_name = list(self.data.keys())[0]
         video_idx = list(self.data[exercise_name])[0]
         frame_idx = list(self.data[exercise_name][video_idx])[0]
