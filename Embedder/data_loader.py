@@ -13,7 +13,7 @@ class Video_Loader(Dataset):
         self.data = self.get_data(data_path=data_path)
         self.vocab = self.get_vocab()
         self.videos = self.preprocess()
-        print('NUMBER OF VIDEOS:' + str(len(self.videos)))
+        pprint('NUMBER OF VIDEOS:' + str(len(self.videos)))
 
     def get_data(self, data_path):
         with open(data_path, 'r', encoding='utf-8') as f:

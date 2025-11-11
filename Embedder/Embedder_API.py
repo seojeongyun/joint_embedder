@@ -41,17 +41,7 @@ class Embedder(nn.Module):
         self.out_features = self.config.OUT_FEAT
         self.num_layer = self.config.NUM_LAYER
         #
-        self.m = self.config.M
-        self.s = self.config.S
-        #
         self.use_embedding = self.config.USE_EMBEDDING
-        #
-        self.cos_m = math.cos(self.m)
-        self.sin_m = math.sin(self.m)
-
-        # make the function cos(theta+m) monotonic decreasing while theta in [0,180]
-        self.th = math.cos(math.pi - self.m)
-        self.mm = math.sin(math.pi - self.m) * self.m
         #
         self.embedding = nn.Embedding(num_embeddings=self.config.NUM_JOINTS, embedding_dim=self.config.OUT_FEAT).to(self.config.DEVICE)
         self.load_state_dict_embedding()
@@ -65,15 +55,19 @@ class Embedder(nn.Module):
             self.atfc = nn.ReLU()
 
     def load_state_dict_embedding(self):
-        if os.path.isfile(self.config.PRETRAINED_EMB_PATH):
-            pretrained_emb_weight = torch.load(self.config.PRETRAINED_EMB_PATH)
-            self.embedding.weight.data.copy_(pretrained_emb_weight['weight'])
-            self.embedding.weight.requires_grad = False
-            self.embedding.to(self.config.DEVICE)
-            pprint('Pretrained embedding weights loaded successfully.')
+        if self.config.USE_EMBEDDING:
+            if os.path.isfile(self.config.PRETRAINED_EMB_PATH):
+                pretrained_emb_weight = torch.load(self.config.PRETRAINED_EMB_PATH)
+                self.embedding.weight.data.copy_(pretrained_emb_weight['weight'])
+                self.embedding.weight.requires_grad = False
+                self.embedding.to(self.config.DEVICE)
+                pprint('Pretrained embedding weights loaded successfully.')
+
+            else:
+                raise ValueError("NOT EXIST PRETRAINED EMBEDDING WEIGHT PATH")
 
         else:
-            raise ValueError("NOT EXIST PRETRAINED EMBEDDING WEIGHT PATH")
+            pass
 
     def load_state_dict_linear(self):
         if os.path.isfile(self.config.PRETRAINED_PATH):
@@ -139,8 +133,9 @@ class Embedder(nn.Module):
                     pass
         return videos
 
-    def batch(self, videos, frame_idx, joint_name):
-        # [BS, 4] (joint per frame parallel)
+    def preprocess_joint_info(self, videos, frame_idx, joint_name):
+        # Collect joint information from (BS) videos loaded by torch dataloader,
+        # which results in a data with the shape of [BS, 4] (joint per frame parallel)
         joint_info = []
         joint_token = []
         for video_idx in range(len(videos)):
@@ -186,16 +181,19 @@ class Embedder(nn.Module):
     def forward(self, videos, exercise_name, view_idx):
         # consider batch
         vec_for_a_frame = []
+
+        # The shape of videos: (BS, MAX_FRAME, 20, x, y)
         videos = self.encode_joint_info(videos, exercise_name, view_idx)
-        for frame_idx in list(videos[0].keys()):
+
+        for frame_idx in range(self.config.MAX_FRAMES):
             vec_for_a_joint = []
             for i, joint_name in enumerate(self.config.JOINTS_NAME):
-                joint_info, joint_token = self.batch(videos, frame_idx, joint_name)
+                joint_info, joint_token = self.preprocess_joint_info(videos, frame_idx, joint_name)
                 vec = self.forward_propagation(joint_info, joint_token)
                 vec_for_a_joint.append(vec)
             a_frame = torch.stack(vec_for_a_joint, dim=1) # stacked shape: [BS, 20, 768]
             vec_for_a_frame.append(a_frame)
-        videos = torch.stack(vec_for_a_frame, dim=1)
+        videos = torch.stack(vec_for_a_frame, dim=1) # BS, MAX_FRAME, 20, 768
 
         return videos
 
@@ -221,4 +219,5 @@ if __name__ == '__main__':
     embedder = Embedder(config, video_dataset.vocab)
     for i, (videos, exercise_name, view_idx) in enumerate(tqdm(video_loader, desc='embedding', total=len(video_loader))):
         output = embedder(videos, exercise_name, view_idx)
+        # BERTSUM(output)
     print()

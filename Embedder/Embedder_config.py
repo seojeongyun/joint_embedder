@@ -38,8 +38,6 @@ config.PRETRAINED_EMB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/checkp
 config.IN_FEAT = 4
 config.OUT_FEAT = int(config.PRETRAINED_PATH.split('/')[7].split()[3].split(':')[-1])
 #
-config.S = int(config.PRETRAINED_PATH.split('/')[7].split()[5].split(':')[-1])
-config.M = float(config.PRETRAINED_PATH.split('/')[7].split()[6].split(':')[-1])
 config.NUM_LAYER = int(config.PRETRAINED_PATH.split('/')[7].split()[2].split(':')[-1])
 config.ACTIV = config.PRETRAINED_PATH.split('/')[7].split()[4].split(':')[-1]
 #
