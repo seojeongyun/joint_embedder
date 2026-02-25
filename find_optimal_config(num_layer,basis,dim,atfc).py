@@ -52,7 +52,6 @@ if __name__ == '__main__':
     NUM_TOKEN = config.DATASET.NUM_TOKEN
 
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_dataset = Coord_Dataset(config=config, data_path=config.DATASET.TRAIN_DATA_PATH)
     train_loader = torch.utils.data.DataLoader(
@@ -152,7 +151,7 @@ if __name__ == '__main__':
                                 loss += criterion(logits, label)
                                 # print(criterion(logits, label))
                             #
-                            loss /= NUM_JOINTS
+                            loss /= (NUM_TOKEN + NUM_JOINTS)
                             loss.backward()
                             losses.update(loss.item(), J_coord.size(0))
                             #
@@ -232,8 +231,8 @@ if __name__ == '__main__':
                 save_dir = f"/home/jysuh/PycharmProjects/coord_embedding/checkpoint/{file_name}"
                 os.makedirs(save_dir, exist_ok=True)
 
-                metric_learning_model_save_path = os.path.join(save_dir, "metric_learning_model.pth.tar")
+                metric_learning_model_save_path = os.path.join(save_dir, "metric_learning.pth.tar")
                 torch.save(fc_metric.state_dict(), metric_learning_model_save_path)
                 #
-                nn_embedding_save_path = os.path.join(save_dir, "metric_learning_model.pth.tar")
+                nn_embedding_save_path = os.path.join(save_dir, "nn.embedding.pth.tar")
                 torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)

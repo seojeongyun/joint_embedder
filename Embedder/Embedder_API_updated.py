@@ -56,12 +56,10 @@ class Embedder(nn.Module):
             self.atfc = nn.ReLU()
 
     def get_vocab(self):
-        with open(config.TRAIN_VOCAB_PATH, 'rb') as f:
+        with open(config.VOCAB_PATH, 'rb') as f:
             vocab = pickle.load(f)
 
         return vocab
-
-    #
 
     def load_state_dict_embedding(self):
         if self.config.USE_EMBEDDING:
@@ -132,24 +130,31 @@ class Embedder(nn.Module):
     def preprocess_joint_info(self, videos, frame_idx, joint_name):
         # Collect joint information from (BS) videos loaded by torch dataloader,
         # which results in a data with the shape of [BS, 4] (joint per frame parallel)
-        joint_info = []
-        joint_token = []
-        for video_idx in range(len(videos)):
-            joint_info.append(videos[video_idx][str(frame_idx)][joint_name])
-            joint_token.append(self.vocab[joint_name])
+        #
+        BS = len(videos)
+        joint_info_cpu = torch.empty((BS, 4), dtype=torch.float32)
+        joint_token_cpu = torch.empty((BS,), dtype=torch.long)
 
-        joint_info = np.array(joint_info)
-        joint_info = torch.from_numpy(joint_info).to(self.config.DEVICE)
-        joint_token = torch.tensor(joint_token).to(self.config.DEVICE)
+        for i in range(BS):
+            joint_info_cpu[i] = torch.as_tensor(videos[i][str(frame_idx)][joint_name],dtype=torch.float32)
+            joint_token_cpu[i] = self.vocab[joint_name]
+
+        joint_info = joint_info_cpu.to(self.config.DEVICE, non_blocking=True)
+        joint_token = joint_token_cpu.to(self.config.DEVICE, non_blocking=True)
+
         return joint_info, joint_token
 
     def forward_propagation(self, joint_info, joint_token):
         BS = joint_info.size(0)
+        device = joint_info.device
+        #
+        embedding_vec = joint_info.new_zeros(BS, self.out_features)
+        #
         if self.use_embedding:
             emb_output_J_tokens = self.embedding(joint_token)  # [BS, OUT_FEAT]
 
         pad_mask = torch.all(joint_info == 0, dim=-1)  # [BS]
-        embedding_vec = torch.zeros(BS, self.out_features, device=self.config.DEVICE)
+        #
 
         if (~pad_mask).any(): # not pad
             out = joint_info[~pad_mask]
@@ -171,26 +176,27 @@ class Embedder(nn.Module):
             embedding_vec[~pad_mask] = out
 
         if pad_mask.any():
-            pad_emb = self.embedding(torch.zeros(pad_mask.sum(), dtype=torch.long, device=self.config.DEVICE))
+            pad_emb = self.embedding(torch.zeros(pad_mask.sum(), dtype=torch.long, device=device))
             embedding_vec[pad_mask] = pad_emb
 
         return embedding_vec
 
     def forward(self, videos):
         # consider batch
-        vec_for_a_frame = []
+        BS = len(videos)
+        T = self.config.MAX_FRAMES
+        J = len(self.config.JOINTS_NAME)
+        D = self.out_features
 
-        for frame_idx in range(self.config.MAX_FRAMES):
-            vec_for_a_joint = []
-            for i, joint_name in enumerate(self.config.JOINTS_NAME):
+        outputs = torch.empty((BS, T, J, D), device=self.config.DEVICE, dtype=torch.float32)
+
+        for frame_idx in range(T):
+            for j, joint_name in enumerate(self.config.JOINTS_NAME):
                 joint_info, joint_token = self.preprocess_joint_info(videos, frame_idx, joint_name)
                 vec = self.forward_propagation(joint_info, joint_token)
-                vec_for_a_joint.append(vec)
-            a_frame = torch.stack(vec_for_a_joint, dim=1) # stacked shape: [BS, 20, 768]
-            vec_for_a_frame.append(a_frame)
-        videos = torch.stack(vec_for_a_frame, dim=1) # BS, MAX_FRAME, 20, 768
+                outputs[:, frame_idx, j, :] = vec
 
-        return videos
+        return outputs
 
 
 if __name__ == '__main__':

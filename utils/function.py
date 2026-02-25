@@ -150,7 +150,7 @@ def plot_tsne_with_centroids(config, feats, labels, vocab, file_name=None, visua
         ).fit_transform(X)  # use the entire X for visualization (can be sampled if needed)
 
     # ---------- (C) Visualization ----------
-        out_dir = os.path.join(config.VIS.PLOT_SAVE_ROOT + '/find_sm', file_name)
+        out_dir = os.path.join(config.VIS.PLOT_SAVE_ROOT + '/train_numlayer_b_b+r_dim_s_m', file_name)
         os.makedirs(out_dir, exist_ok=True)
 
         # build label2name mapping once (use joint names if provided)

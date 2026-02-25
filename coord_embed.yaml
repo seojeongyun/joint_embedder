@@ -12,17 +12,15 @@ DATASET:
   - 1920
   - 1080
   TRAIN_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json
-  VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/coord_valid.json
+  VALID_DATA_PATH: /home/jysuh/PycharmProjects/coord_embedding/dataset/num_layer,b,b+r,dim,s,m/valid_have_one_video_for_a_workout.json
 FILE_NAME: '[PAD,SEP ArcFace]: atfc:GELU use_basis:True epoch:30 layer_num:2 out_dim:768'
 GEN_BERT_DATASET: true
-GPUS: '0'
+GPUS: '1'
 MODE: TRAIN
 MODEL:
   IN_CHANNELS: 4
   NUM_LAYER: 2
   NUM_LAYERS:
-  - 2
-  - 4
   - 6
   OUT_CHANNELS: 768
 PRETRAINED: false
@@ -88,4 +86,4 @@ VIS:
   TSNE_N_ITER: 1000
   TSNE_PERPLEXITY: 30
   TSNE_RANDOM_SEED: 614
-WORKERS: 0
+WORKERS: 4

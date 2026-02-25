@@ -8,8 +8,8 @@ config.GEN_BERT_DATASET = True
 
 # GPU / WORKERS
 config.SEED = 8438
-config.GPUS = '0'
-config.WORKERS = 0
+config.GPUS = '1'
+config.WORKERS = 4
 
 # Dataset
 config.DATASET = edict()
@@ -17,7 +17,7 @@ config.DATASET.TRAIN_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/da
 
 # coord_valid.json : for a workout, have many videos
 # embedding_valid_data.json : for a workout, have one video
-config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/coord_valid.json'
+config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/num_layer,b,b+r,dim,s,m/valid_have_one_video_for_a_workout.json'
 config.DATASET.NUM_JOINTS = 20
 config.DATASET.NUM_TOKEN = 2 # like cls, eos, sep, pad ..
 config.DATASET.TARGET_SIZE = (1920, 1080)
@@ -26,7 +26,7 @@ config.DATASET.TARGET_SIZE = (1920, 1080)
 config.MODEL = edict()
 config.MODEL.IN_CHANNELS = 4
 config.MODEL.OUT_CHANNELS = 768     # 1024
-config.MODEL.NUM_LAYERS = [2, 4, 6] # [2, 4, 6] # for find_optimal_config
+config.MODEL.NUM_LAYERS = [6] # [2, 4, 6] # for find_optimal_config
 config.MODEL.NUM_LAYER = 2  # for train
 
 # Train

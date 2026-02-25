@@ -54,6 +54,24 @@ class Coord_Dataset(Dataset):
         joint_list = [joint_name for joint_name in sample.keys()]
         return processed_data, joint_list
 
+    # def preprocess(self):
+    #     processed_data = []
+    #     for i, (exercise_name) in enumerate(self.data.keys()):
+    #         exercise_name_token = self.vocab[exercise_name]
+    #         for idx, view_idx in enumerate(self.data[exercise_name].keys()):
+    #             for video_idx in self.data[exercise_name][view_idx].keys():
+    #                 for frame_idx in self.data[exercise_name][view_idx][video_idx].keys():
+    #                     sample = self.data[exercise_name][view_idx][video_idx][frame_idx]
+    #                     for joint_name in sample.keys():
+    #                         # sample[joint_name] = [int(sample[joint_name][0]/1920 * 256), int(sample[joint_name][1]/1080 * 256)]
+    #                         sample[joint_name] = [sample[joint_name][0] / self.config.DATASET.TARGET_SIZE[0], sample[joint_name][1] / self.config.DATASET.TARGET_SIZE[1]]
+    #                         sample[joint_name] = sample[joint_name] + [self.vocab[joint_name]] + [exercise_name_token] + [int(frame_idx)] + [idx] + [int(video_idx)]
+    #                     processed_data.append(sample) # sample = {'head' : [x,y]}, v = exercise_name
+    #
+    #     joint_list = [joint_name for joint_name in sample.keys()]
+    #     return processed_data, joint_list
+
+
     def get_reference(self):
         ref = []
         for joint_name in self.joint_list:
