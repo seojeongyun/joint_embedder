@@ -14,7 +14,7 @@ import pickle
     data[0][1]: 22 -> exercise name token
 '''
 
-data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/condition_vocab.pkl'
+data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json'
 
 if data_path.split('/')[-1].split('.')[-1] == 'json':
     with open(data_path, 'r') as f:

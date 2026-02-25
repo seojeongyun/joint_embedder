@@ -22,11 +22,11 @@ config.SEED = 478
 # DATA
 # config.DATA_PATH = '/storage/hjchoi/BERTSUMFORHPE/embedder_train.json'
 if config.TASK_MODE == 'TRAIN':
-    config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/train.pkl'
-    config.VOCAB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/train_vocab.pkl'
+    config.DATA_PATH = '/dataset/bert_data/train.pkl'
+    config.VOCAB_PATH = '/dataset/bert_data/train_vocab.pkl'
 else:
-    config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid.pkl'
-    configVOCAB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid_vocab.pkl'
+    config.DATA_PATH = '/dataset/bert_data/valid.pkl'
+    configVOCAB_PATH = '/dataset/bert_data/valid_vocab.pkl'
 #
 config.IMG_SIZE = [1920, 1080]
 config.NUM_JOINTS = 22  # 0, 1 = PAD, SEP, others joints

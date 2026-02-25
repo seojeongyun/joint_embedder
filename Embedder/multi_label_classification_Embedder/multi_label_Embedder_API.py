@@ -127,15 +127,16 @@ class Embedder(nn.Module):
                     videos[video_idx].setdefault(str(i), {k : np.zeros(4, dtype=np.float32) for k in self.config.JOINTS_NAME})
             #
             for frame_idx, a_frame in videos[video_idx].items():
-                for joint_name, joint_value in a_frame.items():
-                    if np.all(joint_value == 0):
-                        continue
-                    x_norm = joint_value[0] / self.config.IMG_SIZE[0]
-                    y_norm = joint_value[1] / self.config.IMG_SIZE[1]
-                    a_frame[joint_name] = np.array([x_norm, y_norm, self.vocab[joint_name], exercise_name], dtype=np.float32)
-                if list(a_frame.keys()) != self.config.JOINTS_NAME:
-                    print()
-                    pass
+                if frame_idx != 'conditions':
+                    for joint_name, joint_value in a_frame.items():
+                        if np.all(joint_value == 0):
+                            continue
+                        x_norm = joint_value[0] / self.config.IMG_SIZE[0]
+                        y_norm = joint_value[1] / self.config.IMG_SIZE[1]
+                        a_frame[joint_name] = np.array([x_norm, y_norm, self.vocab[joint_name], exercise_name], dtype=np.float32)
+                    if list(a_frame.keys()) != self.config.JOINTS_NAME:
+                        print()
+                        pass
         return videos
 
     def preprocess_joint_info(self, videos, frame_idx, joint_name):
@@ -185,7 +186,7 @@ class Embedder(nn.Module):
 
         return embedding_vec
 
-    def forward(self, videos, exercise_name, view_idx, conditions):
+    def forward(self, videos, exercise_name, view_idx):
         # consider batch
         vec_for_a_frame = []
 
@@ -221,7 +222,7 @@ if __name__ == '__main__':
         pin_memory=True,
         collate_fn=video_dataset.collate_fn
     )
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/condition_vocab.pkl', 'rb') as f:
+    with open('/dataset/bert_data/condition_vocab.pkl', 'rb') as f:
         condition_vocab = pickle.load(f)
     #
     # embedder = Embedder(config, video_dataset.vocab)
@@ -238,8 +239,8 @@ if __name__ == '__main__':
     for i, (videos, exercise_name, view_idx, conditions) in enumerate(tqdm(video_loader, desc='embedding', total=len(video_loader))):
         # cnt[exercise_name[0]] += 1
         output = embedder(videos, exercise_name, view_idx)
-        lst.append([output[0], conditions[0], exercise_name[0]])
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid.pkl', 'wb') as f:
+        lst.append([output[0], exercise_name[0], conditions[0]])
+    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/multi_label_classification_train.pkl', 'wb') as f:
         pickle.dump(lst, f)
 
 

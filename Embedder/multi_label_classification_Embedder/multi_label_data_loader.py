@@ -40,11 +40,11 @@ class Video_Loader(Dataset):
         #     if exercise_name not in vocab:
         #         vocab[exercise_name] = len(vocab)
 
-        with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid_vocab.pkl', 'rb') as f:
+        with open('/dataset/bert_data/train_vocab.pkl', 'rb') as f:
             vocab = pickle.load(f)
             print(vocab)
 
-        with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/condition_vocab.pkl',
+        with open('/dataset/bert_data/condition_vocab.pkl',
                   'rb') as f:
             condition_vocab = pickle.load(f)
 
@@ -79,6 +79,7 @@ class Video_Loader(Dataset):
                         )
                     # workout_name, view_idx
                     video_conditions = video['conditions']
+                    del video['conditions']
                     videos.append([video, exercise_name, view_idx, video_conditions])
 
         pprint("VIDEOS SUCCESSFULLY SEPARATED - FRAME KEYS ARE SORTED IN ASCENDING ORDER.")
