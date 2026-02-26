@@ -29,7 +29,7 @@ config.JOINTS_NAME = [
 
 config.IMG_SIZE = [1920, 1080]
 # config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_train.json'
-config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/train_contained_condition.json'
+config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid_contained_condition.json'
 config.NUM_JOINTS = 22  # 0, 1 = PAD, SEP, others joints
 config.MAX_FRAMES = 21
 

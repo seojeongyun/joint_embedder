@@ -222,7 +222,7 @@ if __name__ == '__main__':
         pin_memory=True,
         collate_fn=video_dataset.collate_fn
     )
-    with open('/dataset/bert_data/condition_vocab.pkl', 'rb') as f:
+    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/condition_vocab.pkl', 'rb') as f:
         condition_vocab = pickle.load(f)
     #
     # embedder = Embedder(config, video_dataset.vocab)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
         # cnt[exercise_name[0]] += 1
         output = embedder(videos, exercise_name, view_idx)
         lst.append([output[0], exercise_name[0], conditions[0]])
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/multi_label_classification_train.pkl', 'wb') as f:
+    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/multi_label_classification_valid.pkl', 'wb') as f:
         pickle.dump(lst, f)
 
 
