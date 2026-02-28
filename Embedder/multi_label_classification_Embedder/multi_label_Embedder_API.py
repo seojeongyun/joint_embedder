@@ -31,12 +31,11 @@ def gen_config(config_file):
         yaml.dump(dict(cfg), f, default_flow_style=False)
 
 class Embedder(nn.Module):
-    def __init__(self, config, workout_vocab, condition_vocab):
+    def __init__(self, config, workout_vocab):
         super().__init__()
         self.config = config
         #
         self.vocab = workout_vocab
-        self.condition_vocab = condition_vocab
         #
         self.in_features = self.config.IN_FEAT
         self.out_features = self.config.OUT_FEAT
@@ -45,10 +44,10 @@ class Embedder(nn.Module):
         self.use_embedding = self.config.USE_EMBEDDING
         #
         self.embedding = nn.Embedding(num_embeddings=self.config.NUM_JOINTS, embedding_dim=self.config.OUT_FEAT).to(self.config.DEVICE)
-        self.load_state_dict_embedding()
+        # self.load_state_dict_embedding()
         #
         self.layers = nn.ModuleList(self.make_layer())
-        self.load_state_dict_linear()
+        # self.load_state_dict_linear()
         #
         if self.config.ACTIV == 'GELU':
             self.atfc = nn.GELU()
@@ -116,7 +115,7 @@ class Embedder(nn.Module):
             layers.append(nn.Linear(self.out_features//2, self.out_features, bias=False))
         return layers
 
-    def encode_joint_info(self, videos, exercise_names, view_idx):
+    def encode_joint_info(self, videos, exercise_names, conditions):
         BS = len(videos)
         #
         for video_idx in range(BS):
@@ -124,19 +123,35 @@ class Embedder(nn.Module):
             # if frame len of current video is smaller than max_frame
             if int(list(videos[video_idx].keys())[-1]) != self.config.MAX_FRAMES-1:
                 for i in range(int(list(videos[video_idx].keys())[-1])+1, self.config.MAX_FRAMES):
-                    videos[video_idx].setdefault(str(i), {k : np.zeros(4, dtype=np.float32) for k in self.config.JOINTS_NAME})
+                    videos[video_idx].setdefault(str(i), {k : np.zeros(self.in_features, dtype=np.float32) for k in self.config.JOINTS_NAME})
             #
             for frame_idx, a_frame in videos[video_idx].items():
-                if frame_idx != 'conditions':
+                if self.in_features == 4:
                     for joint_name, joint_value in a_frame.items():
                         if np.all(joint_value == 0):
                             continue
                         x_norm = joint_value[0] / self.config.IMG_SIZE[0]
                         y_norm = joint_value[1] / self.config.IMG_SIZE[1]
                         a_frame[joint_name] = np.array([x_norm, y_norm, self.vocab[joint_name], exercise_name], dtype=np.float32)
-                    if list(a_frame.keys()) != self.config.JOINTS_NAME:
-                        print()
-                        pass
+
+                elif self.in_features == 4 + 97:
+                    conditions_label = np.zeros(self.in_features - 4, dtype=np.float32)
+                    #
+                    for condition_idx, condition_value in conditions[video_idx]:
+                        if 0 <= condition_idx- 63 < 97:
+                            conditions_label[condition_idx-63] = 1.0 if condition_value == 0 else 0.0
+                        else:
+                            raise ValueError(f"Out of Boundary in condition_idx: {condition_idx-63}")
+
+                    for joint_name, joint_value in a_frame.items():
+                        if np.all(joint_value == 0):
+                            continue
+                        x_norm = joint_value[0] / self.config.IMG_SIZE[0]
+                        y_norm = joint_value[1] / self.config.IMG_SIZE[1]
+                        a_frame[joint_name] = np.array([x_norm, y_norm, self.vocab[joint_name], exercise_name], dtype=np.float32)
+                        a_frame[joint_name] = np.concatenate((a_frame[joint_name], conditions_label), axis=0)
+                else:
+                    raise ValueError(f"Undefined input dim: {self.in_features}")
         return videos
 
     def preprocess_joint_info(self, videos, frame_idx, joint_name):
@@ -186,12 +201,12 @@ class Embedder(nn.Module):
 
         return embedding_vec
 
-    def forward(self, videos, exercise_name, view_idx):
+    def forward(self, videos, exercise_name, conditions):
         # consider batch
         vec_for_a_frame = []
 
         # The shape of videos: (BS, MAX_FRAME, 20, x, y)
-        videos = self.encode_joint_info(videos, exercise_name, view_idx)
+        videos = self.encode_joint_info(videos, exercise_name, conditions)
 
         # for frame_idx in range(self.config.MAX_FRAMES):
         #     vec_for_a_joint = []
@@ -222,8 +237,6 @@ if __name__ == '__main__':
         pin_memory=True,
         collate_fn=video_dataset.collate_fn
     )
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/condition_vocab.pkl', 'rb') as f:
-        condition_vocab = pickle.load(f)
     #
     # embedder = Embedder(config, video_dataset.vocab)
     # for i, (videos, exercise_name, view_idx) in enumerate(tqdm(video_loader, desc='embedding', total=len(video_loader))):
@@ -233,14 +246,14 @@ if __name__ == '__main__':
     # print()
     from collections import defaultdict
     cnt = defaultdict(int)
-    embedder = Embedder(config, video_dataset.workout_vocab, condition_vocab)
+    embedder = Embedder(config, video_dataset.workout_vocab)
 
     lst = []
     for i, (videos, exercise_name, view_idx, conditions) in enumerate(tqdm(video_loader, desc='embedding', total=len(video_loader))):
         # cnt[exercise_name[0]] += 1
-        output = embedder(videos, exercise_name, view_idx)
+        output = embedder(videos, exercise_name, conditions)
         lst.append([output[0], exercise_name[0], conditions[0]])
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/multi_label_classification_valid.pkl', 'wb') as f:
+    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/MultiLabelCls_valid_101dim.pkl', 'wb') as f:
         pickle.dump(lst, f)
 
 

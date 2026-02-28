@@ -5,7 +5,7 @@ from types import SimpleNamespace
 config = SimpleNamespace()
 
 # MODE
-config.TASK_MODE = 'TRAIN' # ['TRAIN', 'VAL']
+config.TASK_MODE = 'VALID' # ['TRAIN', 'VALID']
 config.EMB_MODE = 'RELATIVE_BASIS' # ['RELATIVE_BASIS', 'RELATIVE']
 config.BASIS_FREEZE = False
 config.RELATIVE_FREEZE = False
@@ -29,7 +29,13 @@ config.JOINTS_NAME = [
 
 config.IMG_SIZE = [1920, 1080]
 # config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_train.json'
-config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid_contained_condition.json'
+if config.TASK_MODE == 'TRAIN':
+    config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/train_contained_condition.json'
+    config.VOCAB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/train_vocab.pkl'
+elif config.TASK_MODE == 'VALID':
+    config.DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/valid_contained_condition.json'
+    config.VOCAB_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/valid_vocab.pkl'
+
 config.NUM_JOINTS = 22  # 0, 1 = PAD, SEP, others joints
 config.MAX_FRAMES = 21
 
@@ -63,7 +69,7 @@ OUT_FEAT = int(config.PRETRAINED_PATH.split('/')[6].split()[2].split(':')[-1])
 NUM_LAYER = int(config.PRETRAINED_PATH.split('/')[6].split()[1].split(':')[-1])
 ACTIV = config.PRETRAINED_PATH.split('/')[6].split()[3].split(':')[-1]
 #
-config.IN_FEAT = 4
+config.IN_FEAT = 4+97  # 4 or 4+97, 4 to 786 or (4+97) to 786, 97 is the length of conditions
 config.OUT_FEAT = OUT_FEAT
 config.NUM_LAYER = NUM_LAYER ##EMB_LAYER
 config.ACTIV = ACTIV

@@ -25,22 +25,7 @@ class Video_Loader(Dataset):
         return data
 
     def get_vocab(self):
-        # vocab = {'PAD': 0, 'SEP' : 1}
-        # #
-        # exercise_name = list(self.data.keys())[0]
-        # video_idx = list(self.data[exercise_name])[0]
-        # frame_idx = list(self.data[exercise_name][video_idx])[0]
-        # view_idx = list(self.data[exercise_name][video_idx][frame_idx])[0]
-        #
-        # for joint_name in self.data[exercise_name][video_idx][frame_idx][view_idx]:
-        #     if joint_name not in vocab:
-        #         vocab[joint_name] = len(vocab)
-        #
-        # for exercise_name in self.data.keys():
-        #     if exercise_name not in vocab:
-        #         vocab[exercise_name] = len(vocab)
-
-        with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/valid_vocab.pkl', 'rb') as f:
+        with open(self.config.VOCAB_PATH, 'rb') as f:
             vocab = pickle.load(f)
             print(vocab)
 
