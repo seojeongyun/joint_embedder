@@ -5,6 +5,7 @@ import yaml
 import random
 import numpy as np
 import pickle
+import gzip
 
 from torch import nn
 from tqdm import tqdm
@@ -134,12 +135,12 @@ class Embedder(nn.Module):
                         y_norm = joint_value[1] / self.config.IMG_SIZE[1]
                         a_frame[joint_name] = np.array([x_norm, y_norm, self.vocab[joint_name], exercise_name], dtype=np.float32)
 
-                elif self.in_features == 4 + 97:
-                    conditions_label = np.zeros(self.in_features - 4, dtype=np.float32)
-                    #
-                    for condition_idx, condition_value in conditions[video_idx]:
+                elif self.in_features == 4 + 5:
+                    # 5 -> maxlen of conditions
+                    conditions_label = np.array([-1,-1,-1,-1,-1], dtype=np.float32)
+                    for i, (condition_idx, condition_value) in enumerate(conditions[video_idx]):
                         if 0 <= condition_idx- 63 < 97:
-                            conditions_label[condition_idx-63] = 1.0 if condition_value == 0 else 0.0
+                            conditions_label[i] = condition_idx
                         else:
                             raise ValueError(f"Out of Boundary in condition_idx: {condition_idx-63}")
 
@@ -253,7 +254,7 @@ if __name__ == '__main__':
         # cnt[exercise_name[0]] += 1
         output = embedder(videos, exercise_name, conditions)
         lst.append([output[0], exercise_name[0], conditions[0]])
-    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/MultiLabelCls_valid_101dim.pkl', 'wb') as f:
+    with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/MultiLabelCls_valid_5dim.pkl', 'wb') as f:
         pickle.dump(lst, f)
 
 

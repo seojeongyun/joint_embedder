@@ -69,7 +69,7 @@ OUT_FEAT = int(config.PRETRAINED_PATH.split('/')[6].split()[2].split(':')[-1])
 NUM_LAYER = int(config.PRETRAINED_PATH.split('/')[6].split()[1].split(':')[-1])
 ACTIV = config.PRETRAINED_PATH.split('/')[6].split()[3].split(':')[-1]
 #
-config.IN_FEAT = 4+97  # 4 or 4+97, 4 to 786 or (4+97) to 786, 97 is the length of conditions
+config.IN_FEAT = 4+5  # 5 is maxlen of conditions# 4 or 4+97, 4 to 786 or (4+97) to 786, 97 is the length of conditions
 config.OUT_FEAT = OUT_FEAT
 config.NUM_LAYER = NUM_LAYER ##EMB_LAYER
 config.ACTIV = ACTIV
