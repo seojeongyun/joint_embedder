@@ -6,7 +6,7 @@ import pickle
     workout -> view -> num_video -> frame -> coord
     
     
-    [2] data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_dataset/train.pkl'
+    [2] data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/train.pkl'
     data[n] means a video
     len(data[n]) = 2 -> data[0][0] means a frame, data[0][1] means a coord
     data[0][0].keys(): dict_keys(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'])
@@ -14,7 +14,7 @@ import pickle
     data[0][1]: 22 -> exercise name token
 '''
 
-data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_dataset/train.pkl'
+data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/train.pkl'
 
 if data_path.split('/')[-1].split('.')[-1] == 'json':
     with open(data_path, 'r') as f:
