@@ -13,11 +13,13 @@ config.WORKERS = 4
 
 # Dataset
 config.DATASET = edict()
-config.DATASET.TRAIN_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedding_train_data.json'
+#
+config.DATASET.TRAIN_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/arcface_train_data.json'
+# config.DATASET.TRAIN_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_train.json'
 
 # coord_valid.json : for a workout, have many videos
 # embedding_valid_data.json : for a workout, have one video
-config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/num_layer,b,b+r,dim,s,m/valid_have_one_video_for_a_workout.json'
+config.DATASET.VALID_DATA_PATH = '/home/jysuh/PycharmProjects/coord_embedding/dataset/valid_have_one_video_for_a_workout.json'
 config.DATASET.NUM_JOINTS = 20
 config.DATASET.NUM_TOKEN = 2 # like cls, eos, sep, pad ..
 config.DATASET.TARGET_SIZE = (1920, 1080)
@@ -32,7 +34,7 @@ config.MODEL.NUM_LAYER = 2  # for train
 # Train
 config.TRAIN = edict()
 config.TRAIN.USE_EMB = True
-config.TRAIN.USE_EMB_LIST = [True, False]
+config.TRAIN.USE_EMB_LIST = [False]
 config.TRAIN.SHUFFLE = True
 #
 config.TRAIN.BATCH_SIZE = 64  # during test, bs = 1
@@ -44,9 +46,9 @@ config.TRAIN.WARMUP = True
 config.TRAIN.WARMUP_EPOCH = 150
 config.TRAIN.NUM_SAMPLE = 2 # NUM_SAMPLE * 20(num_joint) * config.TRAIN.BATCH_SIZE
 #
-config.TRAIN.S_RANGE = [10, 15, 20, 25, 30, 35, 40, 45, 50]
-config.TRAIN.M_RANGE = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-config.TRAIN.EMB_DIM = [64, 128, 256, 512, 768, 1024]
+config.TRAIN.S_RANGE = [50]
+config.TRAIN.M_RANGE = [0.45]
+config.TRAIN.EMB_DIM = [768]
 config.TRAIN.LOSSES = ['CosFace', 'ArcFace']
 config.TRAIN.LOSS = 'ArcFace'
 #
