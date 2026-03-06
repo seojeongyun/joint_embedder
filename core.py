@@ -43,8 +43,8 @@ if __name__ == '__main__':
     setproctitle('ExponentialLR-gamma:0.93/256,256')
 
 
-    os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    # os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     fix_seed(config.SEED)
 
