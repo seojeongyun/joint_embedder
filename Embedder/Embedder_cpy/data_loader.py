@@ -38,9 +38,9 @@ class Video_Loader(Dataset):
         #     if exercise_name not in vocab:
         #         vocab[exercise_name] = len(vocab)
 
-        with open('/dataset/bert_data/valid_vocab.pkl', 'rb') as f:
+        with open('/home/jysuh/PycharmProjects/coord_embedding/dataset/bert_data/valid.pkl', 'rb') as f:
             vocab = pickle.load(f)
-            print(vocab)
+            # print(vocab)
 
         pprint('VOCAB SUCCESSFULLY BUILT')
         return vocab

@@ -15,7 +15,7 @@ from collections import defaultdict
     data[0][1]: 22 -> exercise name token
 '''
 
-data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/embedder_dataset/train_contained_condition.json'
+data_path = '/home/jysuh/PycharmProjects/coord_embedding/dataset/arcface_train_data.json'
 
 if data_path.split('/')[-1].split('.')[-1] == 'json':
     with open(data_path, 'r') as f:
