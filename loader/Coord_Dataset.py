@@ -37,7 +37,7 @@ class Coord_Dataset(Dataset):
 
     def __getitem__(self, idx):
         # [20, 3] = [NUM_JOINTS, (X, Y, JOINT_IDX/21)]
-        if self.config.EMB_MODE == 'R':
-            return self.data[idx][:, :2]
+        if self.config.EMB_MODE != 'RwID':
+            return self.data[idx][:, :-1]
         else:
             return self.data[idx]
