@@ -104,6 +104,9 @@ if __name__ == '__main__':
         data_time = AverageMeter()
         losses = AverageMeter()
         #
+        best_loss = float("inf")
+        best_epoch = None
+        #
         for epoch in range(config.TRAIN.EPOCH):
             batch_time.reset()
             data_time.reset()
@@ -132,39 +135,66 @@ if __name__ == '__main__':
                 batch_time.update(time.time() - end)
                 end = time.time()
                 #
-                if i % config.PRINT_FREQ == 0:
-                    loss_value = losses.val.item()
-                    loss_average = losses.avg.item()
-                    msg = (
-                        f"Epoch: [{epoch}][{i}/{len(train_loader)}]\t"
-                        f"Time {batch_time.val:.3f}s "
-                        f"({batch_time.avg:.3f}s)\t"
-                        f"Speed {J_coord.size(0) / batch_time.val:.1f} samples/s\t"
-                        f"Data {data_time.val:.3f}s "
-                        f"({data_time.avg:.3f}s)\t"
-                        f"Loss {loss_value:.7f} "
-                        f"({loss_average:.7f})"
-                    )
-                    print(msg)
-                    #
                 optimizer.step()
+            #
+            #
+            epoch_loss = losses.avg.item()
+
+            if epoch_loss < best_loss:
+                best_loss = epoch_loss
+                best_epoch = epoch
+
+                save_dir = config.SAVE_ROOT + '/' + f'{config.FILE_NAME}/weights'
+                os.makedirs(save_dir, exist_ok=True)
+
+                # 1. ArcFace Classifier SAVE
+                arcface_classifier_save_path = os.path.join(save_dir, "best_arcface_classifier.pt")
+                torch.save({"weight": fc_metric.weight.detach().cpu()}, arcface_classifier_save_path)
+
+                # 2. Relative MLP SAVE
+                metric_learning_model_save_path = os.path.join(save_dir, "best_metric_learning_model.pth.tar")
+                torch.save(fc_metric.layers.state_dict(), metric_learning_model_save_path)
+
+                # 3. nn.Embedding SAVE
+                nn_embedding_save_path = os.path.join(save_dir, "best_nn_embedding.pt")
+                torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)
+
+            #
             scheduler.step()
+
+            loss_value = losses.val.item()
+            loss_average = losses.avg.item()
+            msg = (
+                f"Epoch: [{epoch}]  "
+                f"Time {batch_time.val:.3f}s   "
+                f"Speed {J_coord.size(0) / batch_time.val:.1f} samples/s\t"
+                f"Loss {loss_value:.7f} "
+                f"({loss_average:.7f})"
+            )
+            print(msg)
+
             epoch_end_time = time.time()
             # print(f"{epoch_end_time - epoch_start_time:.2f} sec")
+
+        print(
+            f"Training finished - "
+            f"Best Loss: {best_loss:.7f} "
+            f"(Epoch {best_epoch + 1})"
+        )
 
         save_dir = config.SAVE_ROOT + '/' + f'{config.FILE_NAME}/weights'
         os.makedirs(save_dir, exist_ok=True)
 
         # 1. ArcFace Classifier SAVE
-        arcface_classifier_save_path = os.path.join(save_dir, "arcface_classifier.pt")
+        arcface_classifier_save_path = os.path.join(save_dir, "final_arcface_classifier.pt")
         torch.save({"weight": fc_metric.weight.detach().cpu()}, arcface_classifier_save_path)
 
         # 2. Relative MLP SAVE
-        metric_learning_model_save_path = os.path.join(save_dir, "metric_learning_model.pth.tar")
+        metric_learning_model_save_path = os.path.join(save_dir, "final_metric_learning_model.pth.tar")
         torch.save(fc_metric.layers.state_dict(), metric_learning_model_save_path)
 
         # 3. nn.Embedding SAVE
-        nn_embedding_save_path = os.path.join(save_dir, "nn_embedding.pt")
+        nn_embedding_save_path = os.path.join(save_dir, "final_nn_embedding.pt")
         torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)
 
     #
@@ -176,12 +206,12 @@ if __name__ == '__main__':
         if config.R_PRETRAINED:
             mlp_state = torch.load(config.R_PRETRAINED_PATH, map_location=device)
             fc_metric.layers.load_state_dict(mlp_state, strict=True)
-            print('load weight...' + config.R_PRETRAINED_PATH)
+            print('[Relative Load] ' + config.R_PRETRAINED_PATH)
 
         if config.B_PRETRAINED:
             embedding_state = torch.load(config.B_PRETRAINED_PATH, map_location=device)
             fc_metric.embedding.load_state_dict(embedding_state, strict=True)
-            print('load embedding weight...' + config.B_PRETRAINED_PATH)
+            print('[Basis Load] ' + config.B_PRETRAINED_PATH)
 
 
         # [2] Vocab Load
