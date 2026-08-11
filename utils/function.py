@@ -1,6 +1,13 @@
 import os
 import csv
 import numpy as np
+
+import matplotlib
+
+# This module only saves figures to disk.  Force a non-GUI backend before
+# importing pyplot so long-running worker processes never initialize Tkinter.
+matplotlib.use("Agg", force=True)
+
 import matplotlib.pyplot as plt
 import yaml
 
@@ -325,7 +332,7 @@ def _save_centroid_sphere_outputs(
         n_init=8,
         max_iter=1000,
         eps=1e-9,
-        n_jobs=-1,
+        n_jobs=1,
         normalized_stress=False,
     )
     centroid_positions = mds.fit_transform(
