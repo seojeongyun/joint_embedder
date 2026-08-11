@@ -38,8 +38,6 @@ class Coord_Dataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # [20, 3] = [NUM_JOINTS, (X, Y, JOINT_IDX/21)]
-        if self.embedding_mode != 'RwID':
-            return self.data[idx][:, :-1]
-        else:
+        if self.embedding_mode in ('RwID', 'RwIDNorm'):
             return self.data[idx]
+        return self.data[idx][:, :-1]
