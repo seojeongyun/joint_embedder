@@ -51,24 +51,67 @@ def fix_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+ARCFACE_DATASET_ROOT = (
+      '/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/'
+      'fitness_data_preprocess/ArcFace Dataset'
+  )
+
+VOCAB_ROOT = (
+  '/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/'
+  'fitness_data_preprocess/vocab'
+)
+
+def expected_joint_id_norm(embedding_mode):
+    if embedding_mode in ('B+R', 'R', 'RwID'):
+        return False
+
+    if embedding_mode == 'RwIDNorm':
+        return True
+
+    raise ValueError(
+        f'Unsupported embedding mode: {embedding_mode}'
+    )
+
+def get_data_configuration(is_contain_hard_exercise, is_integrate_row):
+    row_dir = 'row_integrated' if is_integrate_row else 'row_not_integrated'
+
+    hard_dir = 'hard_exercise_included' if is_contain_hard_exercise else 'hard_exercise_excluded'
+
+    if is_contain_hard_exercise and not is_integrate_row:
+        dataset_name = 'Original_Data'
+    elif not is_contain_hard_exercise and is_integrate_row:
+        dataset_name = 'HardExcluded_RowIntegrated'
+    else:
+        raise ValueError(
+          '생성 대상이 아닌 Dataset 구성입니다: '
+          f'hard={is_contain_hard_exercise}, '
+          f'row={is_integrate_row}'
+        )
+
+    return dataset_name, row_dir, hard_dir
+
 if __name__ == '__main__':
     import os
     from setproctitle import *
 
     setproctitle('ExponentialLR-gamma:0.93/256,256')
 
-    fix_seed(config.SEED)
-
     gen_config('/home/jysuh/PycharmProjects/coord_embedding/coord_embed.yaml')
+
+    ARCFACE_DATASET_ROOT = (
+        '/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/'
+        'fitness_data_preprocess/ArcFace Dataset'
+    )
+
+    VOCAB_ROOT = (
+        '/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/'
+        'fitness_data_preprocess/vocab'
+    )
 
     NUM_JOINTS = config.DATASET.NUM_JOINTS
     NUM_TOKEN = config.DATASET.NUM_TOKEN
 
     device = torch.device(f"cuda:{config.GPUS}" if torch.cuda.is_available() else "cpu")
-
-    # [2] Vocab Load
-    with open(config.DATASET.VALID_JOINT_VOCAB_PATH, 'rb') as f:
-        joint_vocab = pickle.load(f)
 
     criterion = nn.CrossEntropyLoss().to(device)
 
@@ -80,9 +123,47 @@ if __name__ == '__main__':
     data_time = AverageMeter()
     losses = AverageMeter()
     #
+    if (
+        len(config.EXP.IS_CONTAIN_HARD_EXERCISE)
+        != len(config.EXP.IS_INTEGRATE_ROW)
+    ):
+        raise ValueError(
+            'Hard Exercise 설정과 Row 통합 설정의 길이가 다릅니다.'
+        )
+
+    experiment_variants = []
+    for (
+        IS_CONTAIN_HARD_EXERCISE,
+        IS_INTEGRATE_ROW,
+    ) in zip(
+        config.EXP.IS_CONTAIN_HARD_EXERCISE,
+        config.EXP.IS_INTEGRATE_ROW,
+    ):
+        for EMB_MODE in config.EXP.EMB_MODE:
+            required_id_norm = expected_joint_id_norm(EMB_MODE)
+            if required_id_norm not in config.EXP.IS_JOINT_ID_NORM:
+                raise ValueError(
+                    f'{EMB_MODE}에 필요한 '
+                    f'IS_JOINT_ID_NORM={required_id_norm}가 '
+                    'config.EXP.IS_JOINT_ID_NORM에 없습니다.'
+                )
+
+            for IS_JOINT_ID_NORM in config.EXP.IS_JOINT_ID_NORM:
+                if IS_JOINT_ID_NORM != required_id_norm:
+                    continue
+
+                experiment_variants.append(
+                    (
+                        IS_CONTAIN_HARD_EXERCISE,
+                        IS_INTEGRATE_ROW,
+                        IS_JOINT_ID_NORM,
+                        EMB_MODE,
+                    )
+                )
+
     total_configurations = (
             len(config.EXP.FEATURE_MODES)
-            * len(config.EXP.EMB_MODE)
+            * len(experiment_variants)
             * len(config.EXP.NUM_LAYERS)
             * len(config.EXP.S_RANGE)
             * len(config.EXP.M_RANGE)
@@ -100,16 +181,71 @@ if __name__ == '__main__':
     )
     #
     for FEATURE_MODE in config.EXP.FEATURE_MODES:
-        # [3] Data Loader
-        TRAIN_DATA_PATH = f'/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/fitness_data_preprocess/ArcFace Dataset/TRAIN_ArcFace_{FEATURE_MODE}.pkl'
-        VALID_DATA_PATH = f'/home/jysuh/PycharmProjects/BERTSUMFORHPE(integrated)/fitness_data_preprocess/ArcFace Dataset/VALID_ArcFace_{FEATURE_MODE}.pkl'
-        for EMB_MODE in config.EXP.EMB_MODE:
+        for (
+            IS_CONTAIN_HARD_EXERCISE,
+            IS_INTEGRATE_ROW,
+            IS_JOINT_ID_NORM,
+            EMB_MODE,
+        ) in experiment_variants:
+            (
+                DATASET_NAME,
+                ROW_MODE_DIR,
+                HARD_EXERCISE_MODE_DIR,
+            ) = get_data_configuration(
+                IS_CONTAIN_HARD_EXERCISE,
+                IS_INTEGRATE_ROW,
+            )
+
+            JOINT_ID_MODE_DIR = (
+                'joint_id_normalized'
+                if IS_JOINT_ID_NORM
+                else 'joint_id_raw'
+            )
+
+            DATASET_DIR = os.path.join(
+                ARCFACE_DATASET_ROOT,
+                FEATURE_MODE,
+                ROW_MODE_DIR,
+                HARD_EXERCISE_MODE_DIR,
+                JOINT_ID_MODE_DIR,
+            )
+            TRAIN_DATA_PATH = os.path.join(DATASET_DIR, 'TRAIN.pkl')
+            VALID_DATA_PATH = os.path.join(DATASET_DIR, 'VALID.pkl')
+
+            missing_dataset_paths = [
+                path
+                for path in (TRAIN_DATA_PATH, VALID_DATA_PATH)
+                if not os.path.isfile(path)
+            ]
+            if missing_dataset_paths:
+                raise FileNotFoundError(
+                    'ArcFace Dataset이 없습니다:\n'
+                    + '\n'.join(missing_dataset_paths)
+                )
+
+            VALID_JOINT_VOCAB_PATH = os.path.join(
+                VOCAB_ROOT,
+                ROW_MODE_DIR,
+                HARD_EXERCISE_MODE_DIR,
+                'VALID',
+                'joint_vocab.pkl',
+            )
+            if not os.path.isfile(VALID_JOINT_VOCAB_PATH):
+                raise FileNotFoundError(
+                    'VALID joint vocab이 없습니다: '
+                    f'{VALID_JOINT_VOCAB_PATH}'
+                )
+
+            with open(VALID_JOINT_VOCAB_PATH, 'rb') as file_pointer:
+                joint_vocab = pickle.load(file_pointer)
+
+            # [3] Data Loader
             #
             train_dataset = Coord_Dataset_EXP(config=config, mode='TRAIN', d_path=TRAIN_DATA_PATH, embedding_mode=EMB_MODE)
             train_loader = torch.utils.data.DataLoader(
                 train_dataset,
                 batch_size=config.TRAIN.BATCH_SIZE,
-                shuffle=config.TRAIN.SHUFFLE,
+                shuffle=False,
                 num_workers=config.WORKERS,
                 pin_memory=True
             )
@@ -144,13 +280,20 @@ if __name__ == '__main__':
             for NUM_LAYERS in config.EXP.NUM_LAYERS:
                 for S in config.EXP.S_RANGE:
                     for M in config.EXP.M_RANGE:
-                        IN_DIM = config.FEATURE_MODES_IN_DIM[FEATURE_MODE] - 1 if EMB_MODE != 'RwID' else config.FEATURE_MODES_IN_DIM[FEATURE_MODE]
+                        fix_seed(config.SEED)
+
+                        IN_DIM = (
+                            config.FEATURE_MODES_IN_DIM[FEATURE_MODE]
+                            if EMB_MODE in ('RwID', 'RwIDNorm')
+                            else config.FEATURE_MODES_IN_DIM[FEATURE_MODE] - 1
+                        )
                         FILE_NAME = (f'[{EMB_MODE}] '
                             f'LAYERS_NUM:{NUM_LAYERS} '
                             f'IN_DIM:{IN_DIM} '
                             f'DIM:{config.MODEL.OUT_CHANNELS} '
                             f'S:{S} '
-                            f'M:{M}')
+                            f'M:{M} '
+                            f'{DATASET_NAME}')
                         #
                         configuration_start_time = time.time()
                         configuration_index = completed_configurations + 1
@@ -277,20 +420,20 @@ if __name__ == '__main__':
                             f"(Epoch {best_epoch + 1})"
                         )
 
-                        save_dir = os.path.join(SAVE_ROOT, FILE_NAME, "weights")
-                        os.makedirs(save_dir, exist_ok=True)
-
-                        # 1. ArcFace Classifier SAVE
-                        arcface_classifier_save_path = os.path.join(save_dir, "final_arcface_classifier.pt")
-                        torch.save({"weight": fc_metric.weight.detach().cpu()}, arcface_classifier_save_path)
-
-                        # 2. Relative MLP SAVE
-                        metric_learning_model_save_path = os.path.join(save_dir, "final_metric_learning_model.pth.tar")
-                        torch.save(fc_metric.layers.state_dict(), metric_learning_model_save_path)
-
-                        # 3. nn.Embedding SAVE
-                        nn_embedding_save_path = os.path.join(save_dir, "final_nn_embedding.pt")
-                        torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)
+                        # save_dir = os.path.join(SAVE_ROOT, FILE_NAME, "weights")
+                        # os.makedirs(save_dir, exist_ok=True)
+                        #
+                        # # 1. ArcFace Classifier SAVE
+                        # arcface_classifier_save_path = os.path.join(save_dir, "final_arcface_classifier.pt")
+                        # torch.save({"weight": fc_metric.weight.detach().cpu()}, arcface_classifier_save_path)
+                        #
+                        # # 2. Relative MLP SAVE
+                        # metric_learning_model_save_path = os.path.join(save_dir, "final_metric_learning_model.pth.tar")
+                        # torch.save(fc_metric.layers.state_dict(), metric_learning_model_save_path)
+                        #
+                        # # 3. nn.Embedding SAVE
+                        # nn_embedding_save_path = os.path.join(save_dir, "final_nn_embedding.pt")
+                        # torch.save(fc_metric.embedding.state_dict(), nn_embedding_save_path)
 
                         # ---------------------------------------------------------
                         # Best model load for validation
@@ -376,6 +519,21 @@ if __name__ == '__main__':
                             "configuration": {
                                 "feature_mode": FEATURE_MODE,
                                 "embedding_mode": EMB_MODE,
+                                "dataset_name": DATASET_NAME,
+                                "is_contain_hard_exercise": bool(
+                                    IS_CONTAIN_HARD_EXERCISE
+                                ),
+                                "is_integrate_row": bool(
+                                    IS_INTEGRATE_ROW
+                                ),
+                                "is_joint_id_norm": bool(
+                                    IS_JOINT_ID_NORM
+                                ),
+                                "row_mode_dir": ROW_MODE_DIR,
+                                "hard_exercise_mode_dir": (
+                                    HARD_EXERCISE_MODE_DIR
+                                ),
+                                "joint_id_mode_dir": JOINT_ID_MODE_DIR,
                                 "num_layers": int(NUM_LAYERS),
                                 "input_dim": int(IN_DIM),
                                 "output_dim": int(config.MODEL.OUT_CHANNELS),
@@ -416,6 +574,9 @@ if __name__ == '__main__':
                             "dataset": {
                                 "train_path": TRAIN_DATA_PATH,
                                 "valid_path": VALID_DATA_PATH,
+                                "valid_joint_vocab_path": (
+                                    VALID_JOINT_VOCAB_PATH
+                                ),
                             },
 
                             "paths": {

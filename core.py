@@ -45,6 +45,19 @@ if __name__ == '__main__':
 
     fix_seed(config.SEED)
 
+    selected_data_path = (
+        config.DATASET.TRAIN_DATA_PATH
+        if config.MODE == 'TRAIN'
+        else config.DATASET.VALID_DATA_PATH
+    )
+    print(f'[Dataset] {selected_data_path}')
+
+    if not os.path.isfile(selected_data_path):
+        raise FileNotFoundError(
+            'Selected ArcFace dataset does not exist: '
+            f'{selected_data_path}'
+        )
+
     gen_config('/home/jysuh/PycharmProjects/coord_embedding/coord_embed.yaml')
 
     NUM_JOINTS = config.DATASET.NUM_JOINTS
