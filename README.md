@@ -13,7 +13,7 @@ Human Pose Estimation으로 추출한 **관절 좌표를 고차원 임베딩으�
 ## Architecture
 
 <p align="center">
-  <img src="./assets/joint_embedder_architecture.png" width="100%">
+  <img src="./assets/Joint_Embedder_Architecture.png" width="100%">
 </p>
 
 ### Joint Representation
